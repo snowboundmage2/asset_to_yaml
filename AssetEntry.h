@@ -33,9 +33,18 @@ public:
         return AssetEntry(uid, 0, meta, std::nullopt);
     }
 
-    int get_type2() const {
-        //AssetType 
-        return 0; // Placeholder implementation
+    AssetType parse_asset_type(const std::string& typeStr) const {
+        if (typeStr == "Binary") return AssetType::Binary;
+        if (typeStr == "Animation") return AssetType::Animation;
+        if (typeStr == "DemoInput") return AssetType::DemoInput;
+        if (typeStr == "Dialog") return AssetType::Dialog;
+        if (typeStr == "GruntyQuestion") return AssetType::GruntyQuestion;
+        if (typeStr == "LevelSetup") return AssetType::LevelSetup;
+        if (typeStr == "Midi") return AssetType::Midi;
+        if (typeStr == "Model") return AssetType::Model;
+        if (typeStr == "QuizQuestion") return AssetType::QuizQuestion;
+        if (typeStr == "Sprite") return AssetType::Sprite;
+        return (AssetType)NULL;  // Default case
     }
 };
 

@@ -71,8 +71,10 @@ public:
             throw std::runtime_error("Could not write assets.yaml");
         }
         asset_yaml << "files:\n";
-        for (const auto& asset : assets) {
-            asset_yaml << "  - { FileID: " << std::hex << std::setw(4) << std::setfill('0') << asset.uid << std::dec << ", " << "Type: " << " }\n";
+        for (auto& asset : assets) {
+            auto asset_data = asset.data.has_value() ? asset.data.value()->to_bytes() : std::vector<uint8_t>();
+            //asset.meta.offset
+            asset_yaml << "  - { FileID: " << std::hex << std::setw(4) << std::setfill('0') << asset.uid << std::dec << ", " << "Offset: "  << std::hex << std::setw(4) << std::setfill('0') << asset.meta.offset << std::dec << " }\n";
         }
     }
 
