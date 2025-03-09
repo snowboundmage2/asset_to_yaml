@@ -6,7 +6,7 @@
 ## Features
 - High performance asset processing
 - Easy conversion to YAML format
-- Customizable via CMake
+- Cmake for easy compilation cross platform (no options yet, but easy enough to add i hope)
 
 ## Requirements
 - C++ compiler
@@ -36,10 +36,7 @@ To use the tool, run the following command:
 ## Contributing
 Contributions are welcome! Please fork the repository and submit your pull requests.
 
-## License
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
 ## Contact
-For any questions or issues, please open an issue on this repository or contact `snowboundmage2`.
+For any questions or issues, please open an issue on this repository, or at me on the you know where.
 
 ```
