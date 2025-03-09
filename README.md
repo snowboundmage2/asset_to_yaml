@@ -6,7 +6,7 @@
 ## Features
 - High performance asset processing
 - Easy conversion to YAML format
-- Customizable via Makefile and CMake
+- Customizable via CMake
 
 ## Requirements
 - C++ compiler
