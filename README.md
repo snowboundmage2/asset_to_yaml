@@ -38,5 +38,3 @@ Contributions are welcome! Please fork the repository and submit your pull reque
 
 ## Contact
 For any questions or issues, please open an issue on this repository, or at me on the you know where.
-
-```
