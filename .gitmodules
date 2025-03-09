@@ -1,0 +1,6 @@
+[submodule "tools/yamlcpp"]
+	path = tools/yamlcpp
+	url = https://github.com/jbeder/yaml-cpp.git
+[submodule "tools/pngpp"]
+	path = tools/pngpp
+	url = https://github.com/usagi/pngpp.git
