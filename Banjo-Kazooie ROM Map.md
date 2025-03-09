@@ -1,5 +1,5 @@
 ====== Banjo-Kazooie ROM Map ======
-
+This whole file "borrowed" with respect to [[https://hack64.net/wiki/doku.php?id=banjo_kazooie:rom_map]]
 Most elements within this ROM map were found by either Skill or CoolboyMan over at [[https://banjosbackpack.com/]].\\ 
 An description of "X" just means it was an empty table entry with no data at all.\\
 An empty description means no one has figured out what it means or has explained it.
