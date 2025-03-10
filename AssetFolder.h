@@ -85,6 +85,69 @@ public:
             assets.emplace_back(AssetEntry(uid));
         }
     }
+/* 
+    void read(const std::filesystem::path& yaml_path) {
+        if (yaml_path.extension() != ".yaml") {
+            throw std::runtime_error("Invalid file extension. Expected .yaml");
+        }
+        
+        std::filesystem::path containing_folder = yaml_path.parent_path();
+        std::ifstream file(yaml_path);
+        if (!file) {
+            throw std::runtime_error("Failed to open YAML file");
+        }
+        
+        YAML::Node doc = YAML::LoadFile(yaml_path.string());
+        
+        std::vector<AssetEntry> asset_meta;
+        for (const auto& entry : doc["files"]) {
+            asset_meta.push_back(AssetEntry::from_yaml(entry));
+        }
+        
+        size_t expect_len = doc["tbl_len"].as<size_t>();
+        size_t max_id = 0;
+        for (const auto& a : asset_meta) {
+            max_id = std::max(max_id, a.uid);
+        }
+        
+        expect_len = std::max(expect_len, max_id + 1);
+        
+        if (assets.size() < expect_len) {
+            assets.resize(expect_len, AssetEntry(0));
+            for (size_t i = 0; i < expect_len; ++i) {
+                assets[i] = AssetEntry(i);
+            }
+        }
+        
+        for (const auto& a : asset_meta) {
+            assets[a.uid] = a;
+        }
+    } */
+        //TODO: Fix includes needed for this function
+/*     void load_assets(const std::filesystem::path& containing_folder, const YAML::Node& doc) {
+        for (const auto& y : doc["files"]) {
+            size_t uid = y["uid"].as<size_t>();
+            std::string relative_path = y["relative_path"].as<std::string>();
+            
+            std::shared_ptr<Asset> data;
+            std::string type = y["type"].as<std::string>();
+            std::filesystem::path asset_path = containing_folder / relative_path;
+            
+            if (type == "Binary") data = std::make_shared<Binary>(Binary::read(asset_path));
+            else if (type == "Dialog") data = std::make_shared<Dialog>(Dialog::read(asset_path));
+            else if (type == "GruntyQuestion") data = std::make_shared<GruntyQuestion>(GruntyQuestion::read(asset_path));
+            else if (type == "QuizQuestion") data = std::make_shared<QuizQuestion>(QuizQuestion::read(asset_path));
+            else if (type == "DemoInput") data = std::make_shared<DemoButtonFile>(DemoButtonFile::read(asset_path));
+            else if (type == "Midi") data = std::make_shared<MidiSeqFile>(MidiSeqFile::read(asset_path));
+            else if (type == "Model") data = std::make_shared<Model>(Model::read(asset_path));
+            else if (type == "LevelSetup") data = std::make_shared<LevelSetup>(LevelSetup::read(asset_path));
+            else if (type == "Animation") data = std::make_shared<Animation>(Animation::read(asset_path));
+            else if (type.rfind("Sprite_", 0) == 0) data = std::make_shared<Sprite>(Sprite::read(asset_path));
+            else data = std::make_shared<Binary>(Binary::read(asset_path));
+            
+            assets[uid].data = data;
+        }
+    } */
 };
 
 #endif // ASSET_FOLDER_H

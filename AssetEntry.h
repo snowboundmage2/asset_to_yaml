@@ -33,7 +33,7 @@ public:
         return AssetEntry(uid, 0, meta, std::nullopt);
     }
 
-    AssetType parse_asset_type(const std::string& typeStr) const {
+    AssetType string_to_type(const std::string& typeStr) const {
         if (typeStr == "Binary") return AssetType::Binary;
         if (typeStr == "Animation") return AssetType::Animation;
         if (typeStr == "DemoInput") return AssetType::DemoInput;
@@ -45,6 +45,20 @@ public:
         if (typeStr == "QuizQuestion") return AssetType::QuizQuestion;
         if (typeStr == "Sprite") return AssetType::Sprite;
         return (AssetType)NULL;  // Default case
+    }
+
+    std::string type_to_string(const AssetType& ass_type) const {
+        if (ass_type == AssetType::Binary) return "Binary";
+        if (ass_type == AssetType::Animation) return "Animation";
+        if (ass_type == AssetType::DemoInput) return "DemoInput";
+        if (ass_type == AssetType::Dialog) return "Dialog";
+        if (ass_type == AssetType::GruntyQuestion) return "GruntyQuestion";
+        if (ass_type == AssetType::LevelSetup) return "LevelSetup";
+        if (ass_type == AssetType::Midi) return "Midi";
+        if (ass_type == AssetType::Model) return "Model";
+        if (ass_type == AssetType::QuizQuestion) return "QuizQuestion";
+        if (ass_type == AssetType::Sprite) return "Sprite";
+        return "broken";  // Default case
     }
 };
 
