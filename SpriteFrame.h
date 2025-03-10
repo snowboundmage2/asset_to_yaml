@@ -2,7 +2,7 @@
 #define SPRITE_FRAME_H
 
 #include "SpriteChunk.h"
-#include "Texture.h"
+#include "TextureAsset.h"
 #include "ImgFmt.h"
 #include <vector>
 #include <optional>

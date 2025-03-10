@@ -12,12 +12,14 @@ private:
     std::vector<uint8_t> bytes;
 
 public:
-    explicit Animation(std::vector<uint8_t> bytes) : bytes(std::move(bytes)) {}
+    explicit Animation(std::vector<uint8_t> bytes) : bytes(std::move(bytes)) {
+        a_type = AssetType::Animation;
+    }
 
     static Animation from_bytes(const std::vector<uint8_t>& in_bytes) {
         return Animation(in_bytes);
     }
-
+    
     static Animation read(const std::filesystem::path& path) {
         std::ifstream file(path, std::ios::binary);
         if (!file) {
@@ -33,7 +35,8 @@ public:
     }
 
     AssetType get_type() const override {
-        return AssetType::Animation;
+        //std::cout << "animationasset::get_type() called" << std::endl;
+        return a_type;
     }
 
     void write(const std::filesystem::path& path) const override {

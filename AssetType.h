@@ -14,7 +14,8 @@ enum class AssetType {
     Midi,
     Model,
     QuizQuestion,
-    Sprite  // Special case, handled separately
+    Sprite,  // Special case, handled separately
+    Texture //may also need special handling later
 };
 
 struct AssetTypeVariant {

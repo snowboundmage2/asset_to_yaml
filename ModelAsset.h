@@ -12,7 +12,9 @@ private:
     std::vector<uint8_t> bytes;
 
 public:
-    explicit Model(std::vector<uint8_t> bytes) : bytes(std::move(bytes)) {}
+    explicit Model(std::vector<uint8_t> bytes) : bytes(std::move(bytes)) {
+        a_type = AssetType::Model;
+    }
 
     static Model from_bytes(const std::vector<uint8_t>& in_bytes) {
         return Model(in_bytes);
@@ -33,7 +35,8 @@ public:
     }
 
     AssetType get_type() const override {
-        return AssetType::Model;
+        //std::cout << "model::get_type() called" << std::endl;
+        return a_type;
     }
 
     void write(const std::filesystem::path& path) const override {

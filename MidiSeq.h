@@ -12,7 +12,9 @@ private:
     std::vector<uint8_t> bytes;
 
 public:
-    explicit MidiSeqFile(std::vector<uint8_t> bytes) : bytes(std::move(bytes)) {}
+    explicit MidiSeqFile(std::vector<uint8_t> bytes) : bytes(std::move(bytes)) {
+        a_type = AssetType::Midi;
+    }
 
     static MidiSeqFile from_bytes(const std::vector<uint8_t>& in_bytes) {
         return MidiSeqFile(in_bytes);
@@ -33,7 +35,8 @@ public:
     }
 
     AssetType get_type() const override {
-        return AssetType::Midi;
+        //std::cout << "midi::get_type() called" << std::endl;
+        return a_type;
     }
 
     void write(const std::filesystem::path& path) const override {

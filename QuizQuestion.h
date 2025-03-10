@@ -17,7 +17,9 @@ private:
 
 public:
     QuizQuestion(std::vector<BKString> question, std::array<BKString, 3> options)
-        : question(std::move(question)), options(options) {}
+        : question(std::move(question)), options(options) {
+            a_type = AssetType::QuizQuestion;
+        }
 
     static QuizQuestion from_bytes(const std::vector<uint8_t>& in_bytes) {
         size_t offset = 6;
@@ -79,7 +81,8 @@ public:
     }
 
     AssetType get_type() const override {
-        return AssetType::QuizQuestion;
+        //std::cout << "quizquestion::get_type() called" << std::endl;
+        return a_type;
     }
 
     void write(const std::filesystem::path& path) const override {

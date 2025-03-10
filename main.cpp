@@ -5,12 +5,26 @@
 #include <filesystem>
 #include <stdexcept>
 
+#include "AssetFolder.h"
+#include "AnimationAsset.h"
+#include "BinaryAsset.h"
+#include "DemoButton.h"
+#include "DialogueAsset.h"
+#include "GruntyQuestion.h"
+#include "LevelSetup.h"
+#include "MidiSeq.h"
+#include "ModelAsset.h"
+#include "QuizQuestion.h"
+#include "Sprite.h"
+#include "TextureAsset.h"
+
 enum class Direction {
     Extract,
     Construct
 };
 
 int main(int argc, char* argv[]) {
+
     if (argc < 4) {
         std::cerr << "Usage: " << argv[0] << " (--extract | -e | --construct | -c) <input path> <output path>\n";
         return 1;
@@ -32,6 +46,7 @@ int main(int argc, char* argv[]) {
 
     try {
         if (direction == Direction::Extract) {
+
             if (!std::filesystem::is_regular_file(in_path)) {
                 throw std::runtime_error("Input path is not a file");
             }
@@ -42,14 +57,18 @@ int main(int argc, char* argv[]) {
             }
 
             std::vector<uint8_t> in_bytes((std::istreambuf_iterator<char>(input_file)), {});
-            AssetFolder af = AssetFolder::from_bytes(in_bytes);
-
+            AssetFolder af = AssetFolder::from_bytes(in_bytes);    
+            std::cout << "Created AssetFolder from bytes." << std::endl;
+       
             std::filesystem::create_directories(out_path);
             if (!std::filesystem::is_directory(out_path)) {
                 throw std::runtime_error("Output path is not a directory");
             }
-            
+            std::cout << "Created driectory from outpath." << std::endl;
+
             af.write(out_path);
+            std::cout << "Wrote AssetFolder to output path." << std::endl;
+
         } else {
             if (!std::filesystem::is_regular_file(in_path)) {
                 throw std::runtime_error("Input path is not a file");

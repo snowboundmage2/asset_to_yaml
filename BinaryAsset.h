@@ -12,7 +12,9 @@ private:
     std::vector<uint8_t> bytes;
 
 public:
-    explicit Binary(const std::vector<uint8_t>& in_bytes) : bytes(in_bytes) {}
+    explicit Binary(const std::vector<uint8_t>& in_bytes) : bytes(in_bytes) {
+        a_type = AssetType::Binary;
+    }
 
     static Binary from_bytes(const std::vector<uint8_t>& in_bytes) {
         return Binary(in_bytes);
@@ -33,7 +35,8 @@ public:
     }
 
     AssetType get_type() const override {
-        return AssetType::Binary;
+        //std::cout << "binaryasset::get_type() called" << std::endl;
+        return a_type;
     }
 
     void write(const std::filesystem::path& path) const override {

@@ -16,7 +16,9 @@ private:
 
 public:
     Dialog(std::vector<BKString> bottom, std::vector<BKString> top)
-        : bottom(std::move(bottom)), top(std::move(top)) {}
+        : bottom(std::move(bottom)), top(std::move(top)) {
+            a_type = AssetType::Dialog;
+        }
 
     static Dialog from_bytes(const std::vector<uint8_t>& in_bytes) {
         size_t offset = 3;
@@ -83,7 +85,8 @@ public:
     }
 
     AssetType get_type() const override {
-        return AssetType::Dialog;
+        std::cout << "dialogue::get_type() called" << std::endl;
+        return a_type;
     }
 
     void write(const std::filesystem::path& path) const override {

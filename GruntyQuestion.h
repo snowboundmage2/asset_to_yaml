@@ -17,7 +17,9 @@ private:
 
 public:
     GruntyQuestion(std::vector<BKString> question, std::array<BKString, 3> options)
-        : question(std::move(question)), options(options) {}
+        : question(std::move(question)), options(options) {
+            a_type = AssetType::GruntyQuestion;
+        }
 
     static GruntyQuestion from_bytes(const std::vector<uint8_t>& in_bytes) {
         size_t offset = 6;
@@ -79,7 +81,8 @@ public:
     }
 
     AssetType get_type() const override {
-        return AssetType::GruntyQuestion;
+        //std::cout << "gruntyquestion::get_type() called" << std::endl;
+        return a_type;
     }
 
     void write(const std::filesystem::path& path) const override {

@@ -31,7 +31,6 @@ add_executable(${PROJECT_NAME}
     SpriteChunk.h
     SpriteFrame.h
     StringToVecu8.h
-    Texture.h
     TextureAsset.h
     Vecu8ToString.h
 )

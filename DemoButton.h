@@ -16,7 +16,9 @@ private:
 
 public:
     DemoButtonFile(std::vector<ContInput> inputs, uint8_t frame1_flag)
-        : inputs(std::move(inputs)), frame1_flag(frame1_flag) {}
+        : inputs(std::move(inputs)), frame1_flag(frame1_flag) {
+            a_type = AssetType::DemoInput;
+        }
 
     static DemoButtonFile from_bytes(const std::vector<uint8_t>& in_bytes) {
         if (in_bytes.size() < 4) {
@@ -82,7 +84,8 @@ public:
     }
 
     AssetType get_type() const override {
-        return AssetType::DemoInput;
+        //std::cout << "demobutton::get_type() called" << std::endl;
+        return a_type;
     }
 
     void write(const std::filesystem::path& path) const override {

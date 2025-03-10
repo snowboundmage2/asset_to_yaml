@@ -10,7 +10,7 @@
 #include <filesystem>
 #include <stdexcept>
 #include <optional>
-#include <png.hpp>
+//#include <png.hpp>
 
 class Sprite : public Asset {
 private:
@@ -20,7 +20,9 @@ private:
 
 public:
     Sprite(ImgFmt format, std::vector<SpriteFrame> frames, std::vector<uint8_t> bytes)
-        : format(format), frames(std::move(frames)), bytes(std::move(bytes)) {}
+        : format(format), frames(std::move(frames)), bytes(std::move(bytes)) {
+            a_type = AssetType::Sprite;
+        }
 
     static Sprite from_bytes(const std::vector<uint8_t>& in_bytes) {
         uint16_t frame_cnt = (in_bytes[0] << 8) | in_bytes[1];
@@ -62,7 +64,8 @@ public:
     }
 
     AssetType get_type() const override {
-        return AssetType::Sprite;
+        //std::cout << "sprite::get_type() called" << std::endl;
+        return a_type;
     }
 
     void write(const std::filesystem::path& path) const override {
@@ -90,7 +93,7 @@ public:
                 throw std::runtime_error("Failed to create PNG file");
             }
             
-            png::image<png::rgb_pixel> image(frames[i].width, frames[i].height);
+/*             png::image<png::rgb_pixel> image(frames[i].width, frames[i].height);
             for (size_t y = 0; y < frames[i].height; ++y) {
                 for (size_t x = 0; x < frames[i].width; ++x) {
                     size_t idx = (y * frames[i].width + x) * 4;
@@ -101,8 +104,8 @@ public:
                     );
                     image.set_pixel(x, y, rgb_pixel);
                 }
-            }
-            image.write(img_path.string());
+            } */
+            // image.write(img_path.string());
         }
     }
 };

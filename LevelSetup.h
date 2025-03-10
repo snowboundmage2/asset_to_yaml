@@ -12,7 +12,9 @@ private:
     std::vector<uint8_t> bytes;
 
 public:
-    explicit LevelSetup(std::vector<uint8_t> bytes) : bytes(std::move(bytes)) {}
+    explicit LevelSetup(std::vector<uint8_t> bytes) : bytes(std::move(bytes)) {
+        a_type = AssetType::LevelSetup;
+    }
 
     static LevelSetup from_bytes(const std::vector<uint8_t>& in_bytes) {
         return LevelSetup(in_bytes);
@@ -33,7 +35,8 @@ public:
     }
 
     AssetType get_type() const override {
-        return AssetType::LevelSetup;
+        //std::cout << "levelsetup::get_type() called" << std::endl;
+        return a_type;
     }
 
     void write(const std::filesystem::path& path) const override {
