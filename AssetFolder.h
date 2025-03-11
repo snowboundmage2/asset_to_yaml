@@ -13,11 +13,18 @@
 #include <iomanip>
 
 class AssetFolder {
+private:
+    //AssetEntry current_asset;
+    //std::vector<uint8_t> out_bytes;
 public:
-    std::vector<AssetEntry> v_asset_entry;
+    std::vector<AssetEntry> v_asset_entries;
     AssetType asset_type;
 
-    AssetFolder() = default;
+    AssetFolder() : v_asset_entries() {}
+
+    static AssetFolder create() {
+        return AssetFolder();
+    }
 
     static AssetFolder from_bytes(const std::vector<uint8_t>& in_bytes) {
         if (in_bytes.size() < 8) {
@@ -41,13 +48,16 @@ public:
             std::vector<uint8_t> asset_data(data_bytes.begin() + this_meta.offset, data_bytes.begin() + next_meta.offset);
             asset_list.emplace_back(i, 0, this_meta, nullptr);
         }
+            
+        AssetFolder folder;
+        folder.v_asset_entries = std::move(asset_list);
+        return folder;
 
-        return AssetFolder{asset_list};
     }
-
+    
     std::vector<uint8_t> to_bytes() {
         std::vector<uint8_t> out;
-        size_t asset_count = v_asset_entry.size();
+        size_t asset_count = v_asset_entries.size();
         out.push_back((asset_count >> 24) & 0xFF);
         out.push_back((asset_count >> 16) & 0xFF);
         out.push_back((asset_count >> 8) & 0xFF);
@@ -57,7 +67,7 @@ public:
         std::vector<uint8_t> meta_bytes;
         std::vector<uint8_t> data_bytes;
         size_t offset = 0;
-        for (auto& asset : v_asset_entry) {
+        for (auto& asset : v_asset_entries) {
             auto asset_data = asset.data ? asset.data->to_bytes() : std::vector<uint8_t>();
             asset.meta.offset = offset;
             meta_bytes.insert(meta_bytes.end(), asset.meta.to_bytes().begin(), asset.meta.to_bytes().end());
@@ -73,31 +83,60 @@ public:
         std::ofstream asset_yaml(out_dir_path / "assets.yaml");
         if (!asset_yaml) {
             throw std::runtime_error("Could not write assets.yaml");
-        }
-        asset_yaml << "files:\n";
-        for (auto& asset_entry : v_asset_entry) {
-            // Debug: Print asset entry UID
-            std::cout << "Writing asset entry UID: " << asset_entry.uid << std::endl;
-            //asset_type = asset_entry.data.has_value() ? asset_entry.data.value()->a_type : (AssetType)NULL;
-            asset_type = asset_entry.get_asset_type();
-            std::cout << "asset_type: " << asset_entry.type_to_string(asset_type) << std::endl;
-
-            std::vector<uint8_t> out_bytes = asset_entry.meta.to_bytes();
+        }        
+        
+        std::cout << "Starting write loop" << std::endl;
+        for (const auto& asset_entry : v_asset_entries) {
+            std::shared_ptr<Asset> data = asset_entry.data;
+            std::vector<uint8_t> out_bytes = data ? data->to_bytes() : std::vector<uint8_t>();
             std::string out(out_bytes.begin(), out_bytes.end());
-
             // Debug: Print asset entry meta information
-            std::cout << "Asset entry meta - Offset: " << asset_entry.meta.offset << std::endl;
+            //std::cout << std::hex << asset_entry.meta.from_bytes << std::endl;
+            //std::cout << std::hex << asset_entry.meta.to_bytes << std::endl;
+            //std::cout << out << std::endl;
+            std::cout << "Asset entry meta - Offset: " << std::to_string(asset_entry.meta.offset) << std::endl;
 
-            asset_yaml << "  - { Symbol: " << std::hex << std::setw(4) << std::setfill('0') << asset_entry.uid << std::dec << ", Offset: "  << std::hex << std::setw(4) << std::setfill('0') << asset_entry.meta.offset << std::dec << ", Type: " << static_cast<int>(asset_type) << " }" << std::endl;
+            asset_yaml << "  - { Symbol: " << std::hex << std::setw(4) << \
+            std::setfill('0') << asset_entry.uid << std::dec << ", Offset: "  << \
+            std::hex << std::setw(4) << std::setfill('0') << asset_entry.meta.offset << \
+            std::dec << ", frombytes: " << asset_entry.meta.from_bytes << " }" << \
+            std::endl;
         }
     }
 
-    AssetType determine_asset_type(const std::vector<uint8_t>& data) {
+    AssetType determine_asset_type(const AssetEntry& current_asset) {
+        std::vector<uint8_t> out_bytes;
         // Implement logic to determine the asset type based on the binary data
-
-/*      if (Animation::is_valid(data)) return AssetType::Animation;
+        out_bytes = current_asset.data->to_bytes();
+        if (out_bytes == std::vector<uint8_t>{static_cast<uint8_t>(AssetType::Animation)}) {
+                return AssetType::Animation;
+            } else if (out_bytes == std::vector<uint8_t>{static_cast<uint8_t>(AssetType::Binary)}) {
+                return AssetType::Binary;
+            } else if (out_bytes == std::vector<uint8_t>{static_cast<uint8_t>(AssetType::DemoInput)}) {
+                return AssetType::DemoInput;
+            } else if (out_bytes == std::vector<uint8_t>{static_cast<uint8_t>(AssetType::Dialog)}) {
+                return AssetType::Dialog;
+            } else if (out_bytes == std::vector<uint8_t>{static_cast<uint8_t>(AssetType::GruntyQuestion)}) {
+                return AssetType::GruntyQuestion;
+            } else if (out_bytes == std::vector<uint8_t>{static_cast<uint8_t>(AssetType::LevelSetup)}) {
+                return AssetType::LevelSetup;
+            } else if (out_bytes == std::vector<uint8_t>{static_cast<uint8_t>(AssetType::Midi)}) {
+                return AssetType::Midi;
+            } else if (out_bytes == std::vector<uint8_t>{static_cast<uint8_t>(AssetType::Model)}) {
+                return AssetType::Model;
+            } else if (out_bytes == std::vector<uint8_t>{static_cast<uint8_t>(AssetType::QuizQuestion)}) {
+                return AssetType::QuizQuestion;
+            } else if (out_bytes == std::vector<uint8_t>{static_cast<uint8_t>(AssetType::Sprite)}) {
+                return AssetType::Sprite;
+            } else if (out_bytes == std::vector<uint8_t>{static_cast<uint8_t>(AssetType::Texture)}) {
+                return AssetType::Texture;
+            } else {
+                return AssetType::Binary;
+            }
+    } 
+/*         if (Animation::is_valid(data)) return AssetType::Animation;
         if (Binary::is_valid(data)) return AssetType::Binary;
-        if (DemoButtonFile::is_valid(data)) return AssetType::DemoInput;
+        if (DemoButton::is_valid(data)) return AssetType::DemoInput;
         if (Dialog::is_valid(data)) return AssetType::Dialog;
         if (GruntyQuestion::is_valid(data)) return AssetType::GruntyQuestion;
         if (LevelSetup::is_valid(data)) return AssetType::LevelSetup;
@@ -107,10 +146,26 @@ public:
         if (Sprite::is_valid(data)) return AssetType::Sprite;
         if (Texture::is_valid(data)) return AssetType::Texture;
         return AssetType::Binary; */
-    }
 
     void read(const std::filesystem::path& yaml_path) {
     }
+
+    std::string get_asset_type_string(const AssetType& type) {
+        switch (type) {
+            case AssetType::Animation: return "Animation";
+            case AssetType::Binary: return "Binary";
+            case AssetType::DemoInput: return "DemoInput";
+            case AssetType::Dialog: return "Dialog";
+            case AssetType::GruntyQuestion: return "GruntyQuestion";
+            case AssetType::Midi: return "Midi";
+            case AssetType::Model: return "Model";
+            case AssetType::LevelSetup: return "LevelSetup";
+            case AssetType::QuizQuestion: return "QuizQuestion";
+            case AssetType::Sprite: return "Sprite"; // Sprite needs special handling
+            default: return "Binary";
+        }
+    }
+    
 };
 
 #endif // ASSET_FOLDER_H

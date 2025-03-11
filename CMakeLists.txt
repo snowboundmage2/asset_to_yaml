@@ -10,34 +10,35 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 # Add the executable
 add_executable(${PROJECT_NAME}
     main.cpp
-    AnimationAsset.h
+    AT_Animation.h
+    AT_Binary.h
+    AT_DemoButton.h
+    AT_Dialogue.h
+    AT_GruntyQuestion.h
+    AT_LevelSetup.h
+    AT_MidiSeq.h
+    AT_Model.h
+    AT_QuizQuestion.h
+    AT_Sprite.h
+    AT_Texture.h
     Asset.h
     AssetEntry.h
     AssetFolder.h
     AssetMeta.h
     AssetType.h
-    BinaryAsset.h
     BKString.h
     ContInput.h
-    DemoButton.h
-    DialogueAsset.h
-    GruntyQuestion.h
     ImgFmt.h
-    LevelSetup.h
-    MidiSeq.h
-    ModelAsset.h
-    QuizQuestion.h
-    Sprite.h
     SpriteChunk.h
     SpriteFrame.h
     StringToVecu8.h
-    TextureAsset.h
     Vecu8ToString.h
 )
 
 # Include directories
 include_directories(
-    ${PROJECT_SOURCE_DIR}/tools/pngpp
+    #skipping png support for now
+    #${PROJECT_SOURCE_DIR}/tools/pngpp
     ${PROJECT_SOURCE_DIR}/tools/yamlcpp
 )
 

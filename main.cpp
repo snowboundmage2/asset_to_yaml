@@ -6,17 +6,17 @@
 #include <stdexcept>
 
 #include "AssetFolder.h"
-#include "AnimationAsset.h"
-#include "BinaryAsset.h"
-#include "DemoButton.h"
-#include "DialogueAsset.h"
-#include "GruntyQuestion.h"
-#include "LevelSetup.h"
-#include "MidiSeq.h"
-#include "ModelAsset.h"
-#include "QuizQuestion.h"
-#include "Sprite.h"
-#include "TextureAsset.h"
+#include "AT_Animation.h"
+#include "AT_Binary.h"
+#include "AT_DemoButton.h"
+#include "AT_Dialogue.h"
+#include "AT_GruntyQuestion.h"
+#include "AT_LevelSetup.h"
+#include "AT_MidiSeq.h"
+#include "AT_Model.h"
+#include "AT_QuizQuestion.h"
+#include "AT_Sprite.h"
+#include "AT_Texture.h"
 
 enum class Direction {
     Extract,
@@ -69,7 +69,8 @@ int main(int argc, char* argv[]) {
             af.write(out_path);
             std::cout << "Wrote AssetFolder to output path." << std::endl;
 
-        } else {
+        } else {/* 
+            disabled compact/create for now
             if (!std::filesystem::is_regular_file(in_path)) {
                 throw std::runtime_error("Input path is not a file");
             }
@@ -84,7 +85,7 @@ int main(int argc, char* argv[]) {
             if (!out_bin) {
                 throw std::runtime_error("Could not create output binary file");
             }
-            out_bin.write(reinterpret_cast<const char*>(decomp_buffer.data()), decomp_buffer.size());
+            out_bin.write(reinterpret_cast<const char*>(decomp_buffer.data()), decomp_buffer.size()); */
         }
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << "\n";

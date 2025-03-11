@@ -82,7 +82,7 @@ public:
 
     AssetType get_type() const override {
         //std::cout << "quizquestion::get_type() called" << std::endl;
-        return a_type;
+        return AssetType::QuizQuestion;
     }
 
     void write(const std::filesystem::path& path) const override {

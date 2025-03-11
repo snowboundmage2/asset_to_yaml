@@ -47,7 +47,7 @@ public:
     }
 
     AssetType get_type() const override {
-        return a_type;
+        return AssetType::Texture;
     }
 
     std::vector<uint8_t> to_rgba32() const {

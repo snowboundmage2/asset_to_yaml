@@ -1,5 +1,5 @@
-#ifndef BINARY_H
-#define BINARY_H
+#ifndef ANIMATION_H
+#define ANIMATION_H
 
 #include "Asset.h"
 #include <vector>
@@ -7,27 +7,27 @@
 #include <filesystem>
 #include <stdexcept>
 
-class Binary : public Asset {
+class Animation : public Asset {
 private:
     std::vector<uint8_t> bytes;
 
 public:
-    explicit Binary(const std::vector<uint8_t>& in_bytes) : bytes(in_bytes) {
-        a_type = AssetType::Binary;
+    explicit Animation(std::vector<uint8_t> bytes) : bytes(std::move(bytes)) {
+        a_type = AssetType::Animation;
     }
 
-    static Binary from_bytes(const std::vector<uint8_t>& in_bytes) {
-        return Binary(in_bytes);
+    static Animation from_bytes(const std::vector<uint8_t>& in_bytes) {
+        return Animation(in_bytes);
     }
-
-    static Binary read(const std::filesystem::path& path) {
+    
+    static Animation read(const std::filesystem::path& path) {
         std::ifstream file(path, std::ios::binary);
         if (!file) {
             throw std::runtime_error("Failed to open file");
         }
         
         std::vector<uint8_t> buffer((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-        return Binary(buffer);
+        return Animation(buffer);
     }
 
     std::vector<uint8_t> to_bytes() const override {
@@ -35,8 +35,8 @@ public:
     }
 
     AssetType get_type() const override {
-        //std::cout << "binaryasset::get_type() called" << std::endl;
-        return a_type;
+        //std::cout << "animationasset::get_type() called" << std::endl;
+        return AssetType::Animation;
     }
 
     void write(const std::filesystem::path& path) const override {
@@ -48,4 +48,4 @@ public:
     }
 };
 
-#endif // BINARY_H
+#endif // ANIMATION_H

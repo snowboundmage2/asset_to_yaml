@@ -21,7 +21,6 @@ private:
 public:
     Sprite(ImgFmt format, std::vector<SpriteFrame> frames, std::vector<uint8_t> bytes)
         : format(format), frames(std::move(frames)), bytes(std::move(bytes)) {
-            a_type = AssetType::Sprite;
         }
 
     static Sprite from_bytes(const std::vector<uint8_t>& in_bytes) {
@@ -65,7 +64,7 @@ public:
 
     AssetType get_type() const override {
         //std::cout << "sprite::get_type() called" << std::endl;
-        return a_type;
+        return AssetType::Sprite;
     }
 
     void write(const std::filesystem::path& path) const override {

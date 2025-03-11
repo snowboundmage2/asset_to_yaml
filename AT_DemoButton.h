@@ -9,20 +9,20 @@
 #include <stdexcept>
 #include "yaml-cpp/yaml.h"
 
-class DemoButtonFile : public Asset {
+class DemoButton : public Asset {
 private:
     std::vector<ContInput> inputs;
     uint8_t frame1_flag;
 
 public:
-    DemoButtonFile(std::vector<ContInput> inputs, uint8_t frame1_flag)
+    DemoButton(std::vector<ContInput> inputs, uint8_t frame1_flag)
         : inputs(std::move(inputs)), frame1_flag(frame1_flag) {
             a_type = AssetType::DemoInput;
         }
 
-    static DemoButtonFile from_bytes(const std::vector<uint8_t>& in_bytes) {
+    static DemoButton from_bytes(const std::vector<uint8_t>& in_bytes) {
         if (in_bytes.size() < 4) {
-            return DemoButtonFile({}, 0);
+            return DemoButton({}, 0);
         }
 
         uint32_t expected_length = (in_bytes[0] << 24) | (in_bytes[1] << 16) | (in_bytes[2] << 8) | in_bytes[3];
@@ -36,16 +36,16 @@ public:
         }
 
         if (expected_length != inputs.size() * 6) {
-            throw std::runtime_error("Byte size mismatch in DemoButtonFile");
+            throw std::runtime_error("Byte size mismatch in DemoButton");
         }
 
-        return DemoButtonFile(inputs, f1f);
+        return DemoButton(inputs, f1f);
     }
 
-    static DemoButtonFile read(const std::filesystem::path& path) {
+    static DemoButton read(const std::filesystem::path& path) {
         YAML::Node doc = YAML::LoadFile(path.string());
         if (doc["type"].as<std::string>() != "DemoInput") {
-            throw std::runtime_error("Invalid DemoButtonFile type");
+            throw std::runtime_error("Invalid DemoButton type");
         }
 
         uint8_t f1f = static_cast<uint8_t>(doc["flag"].as<int64_t>());
@@ -54,7 +54,7 @@ public:
             inputs.push_back(ContInput::from_yaml(item));
         }
 
-        return DemoButtonFile(inputs, f1f);
+        return DemoButton(inputs, f1f);
     }
 
     std::vector<uint8_t> to_bytes() const override {
@@ -85,7 +85,7 @@ public:
 
     AssetType get_type() const override {
         //std::cout << "demobutton::get_type() called" << std::endl;
-        return a_type;
+        return AssetType::DemoInput;
     }
 
     void write(const std::filesystem::path& path) const override {

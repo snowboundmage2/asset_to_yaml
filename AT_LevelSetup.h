@@ -1,5 +1,5 @@
-#ifndef ANIMATION_H
-#define ANIMATION_H
+#ifndef LEVEL_SETUP_H
+#define LEVEL_SETUP_H
 
 #include "Asset.h"
 #include <vector>
@@ -7,27 +7,27 @@
 #include <filesystem>
 #include <stdexcept>
 
-class Animation : public Asset {
+class LevelSetup : public Asset {
 private:
     std::vector<uint8_t> bytes;
 
 public:
-    explicit Animation(std::vector<uint8_t> bytes) : bytes(std::move(bytes)) {
-        a_type = AssetType::Animation;
+    explicit LevelSetup(std::vector<uint8_t> bytes) : bytes(std::move(bytes)) {
+        a_type = AssetType::LevelSetup;
     }
 
-    static Animation from_bytes(const std::vector<uint8_t>& in_bytes) {
-        return Animation(in_bytes);
+    static LevelSetup from_bytes(const std::vector<uint8_t>& in_bytes) {
+        return LevelSetup(in_bytes);
     }
-    
-    static Animation read(const std::filesystem::path& path) {
+
+    static LevelSetup read(const std::filesystem::path& path) {
         std::ifstream file(path, std::ios::binary);
         if (!file) {
             throw std::runtime_error("Failed to open file");
         }
         
         std::vector<uint8_t> buffer((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-        return Animation(buffer);
+        return LevelSetup(buffer);
     }
 
     std::vector<uint8_t> to_bytes() const override {
@@ -35,8 +35,8 @@ public:
     }
 
     AssetType get_type() const override {
-        //std::cout << "animationasset::get_type() called" << std::endl;
-        return a_type;
+        //std::cout << "levelsetup::get_type() called" << std::endl;
+        return AssetType::LevelSetup;
     }
 
     void write(const std::filesystem::path& path) const override {
@@ -48,4 +48,4 @@ public:
     }
 };
 
-#endif // ANIMATION_H
+#endif // LEVEL_SETUP_H

@@ -1,5 +1,5 @@
-#ifndef MODEL_H
-#define MODEL_H
+#ifndef MIDI_SEQ_FILE_H
+#define MIDI_SEQ_FILE_H
 
 #include "Asset.h"
 #include <vector>
@@ -7,27 +7,27 @@
 #include <filesystem>
 #include <stdexcept>
 
-class Model : public Asset {
+class MidiSeqFile : public Asset {
 private:
     std::vector<uint8_t> bytes;
 
 public:
-    explicit Model(std::vector<uint8_t> bytes) : bytes(std::move(bytes)) {
-        a_type = AssetType::Model;
+    explicit MidiSeqFile(std::vector<uint8_t> bytes) : bytes(std::move(bytes)) {
+        a_type = AssetType::Midi;
     }
 
-    static Model from_bytes(const std::vector<uint8_t>& in_bytes) {
-        return Model(in_bytes);
+    static MidiSeqFile from_bytes(const std::vector<uint8_t>& in_bytes) {
+        return MidiSeqFile(in_bytes);
     }
 
-    static Model read(const std::filesystem::path& path) {
+    static MidiSeqFile read(const std::filesystem::path& path) {
         std::ifstream file(path, std::ios::binary);
         if (!file) {
             throw std::runtime_error("Failed to open file");
         }
         
         std::vector<uint8_t> buffer((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-        return Model(buffer);
+        return MidiSeqFile(buffer);
     }
 
     std::vector<uint8_t> to_bytes() const override {
@@ -35,8 +35,8 @@ public:
     }
 
     AssetType get_type() const override {
-        //std::cout << "model::get_type() called" << std::endl;
-        return a_type;
+        //std::cout << "midi::get_type() called" << std::endl;
+        return AssetType::Midi;
     }
 
     void write(const std::filesystem::path& path) const override {
@@ -48,4 +48,4 @@ public:
     }
 };
 
-#endif // MODEL_H
+#endif // MIDI_SEQ_FILE_H

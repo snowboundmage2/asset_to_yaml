@@ -6,17 +6,17 @@
 #include <memory>
 #include <stdexcept>
 #include "yaml-cpp/yaml.h"
-#include "AnimationAsset.h"
-#include "BinaryAsset.h"
-#include "DemoButton.h"
-#include "DialogueAsset.h"
-#include "GruntyQuestion.h"
-#include "LevelSetup.h"
-#include "MidiSeq.h"
-#include "ModelAsset.h"
-#include "QuizQuestion.h"
-#include "Sprite.h"
-#include "TextureAsset.h"
+#include "AT_Animation.h"
+#include "AT_Binary.h"
+#include "AT_DemoButton.h"
+#include "AT_Dialogue.h"
+#include "AT_GruntyQuestion.h"
+#include "AT_LevelSetup.h"
+#include "AT_MidiSeq.h"
+#include "AT_Model.h"
+#include "AT_QuizQuestion.h"
+#include "AT_Sprite.h"
+#include "AT_Texture.h"
 
 class AssetEntry {
 public:
@@ -25,7 +25,7 @@ public:
     AssetMeta meta;
     std::shared_ptr<Asset> data;
     AssetType ae_type;
-
+    
     AssetEntry(size_t uid, size_t seg, AssetMeta meta, std::shared_ptr<Asset> data)
         : uid(uid), seg(seg), meta(meta), data(data) {
         // std::cout << "AssetEntry created with uid: " << uid << ", data: " << (data ? "yes" : "no") << std::endl;
@@ -42,27 +42,16 @@ public:
     }
 
     static AssetEntry from_yaml(const YAML::Node& yaml) {
-        std::cout << "AssetEntry::from_yaml(): " << yaml << std::endl;
         if (!yaml["uid"].IsDefined() || !yaml["uid"].IsScalar()) {
-            throw std::runtime_error("Could not read uid as integer");
+            throw std::runtime_error("Could not read uid as an integer");
         }
+
         size_t uid = yaml["uid"].as<size_t>();
         bool c_type = yaml["compressed"].as<bool>();
         uint16_t t_type = yaml["flags"].as<uint16_t>();
-        
+
         AssetMeta meta(0, c_type, t_type);
         return AssetEntry(uid, 0, meta, nullptr);
-    }
-
-    //this never gets any data
-    AssetType get_asset_type() const {
-        if (data != nullptr) {
-            //std::cout << "AssetEntry::get_asset_type() - data has value" << std::endl;
-            return data->a_type;
-        } else {
-            //std::cout << "AssetEntry::get_asset_type() - data has no value" << std::endl;
-            return AssetType::Binary;
-        }
     }
 
     AssetType string_to_type(const std::string& typeStr) const {
@@ -98,7 +87,7 @@ public:
 private:
     std::shared_ptr<Animation> animation_;
     std::shared_ptr<Binary> binary_;
-    std::shared_ptr<DemoButtonFile> demobuttonfile_;
+    std::shared_ptr<DemoButton> DemoButton_;
     std::shared_ptr<Dialog> dialogue_;
     std::shared_ptr<GruntyQuestion> gruntyquestion_;
     std::shared_ptr<LevelSetup> levelsetup_;
@@ -107,6 +96,7 @@ private:
     std::shared_ptr<QuizQuestion> quizquestion_;
     std::shared_ptr<Sprite> sprite_;
     std::shared_ptr<Texture> texture_;
+
 };
 
 #endif // ASSET_ENTRY_H
