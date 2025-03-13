@@ -22,8 +22,12 @@ public:
     Sprite(ImgFmt format, std::vector<SpriteFrame> frames, std::vector<uint8_t> bytes)
         : format(format), frames(std::move(frames)), bytes(std::move(bytes)) {
         }
+        
+    Sprite(std::vector<uint8_t> bytes) : bytes(std::move(bytes)) {
+        }
 
     static Sprite from_bytes(const std::vector<uint8_t>& in_bytes) {
+       return Sprite(in_bytes);
        /*  uint16_t frame_cnt = (in_bytes[0] << 8) | in_bytes[1];
         uint16_t format_code = (in_bytes[2] << 8) | in_bytes[3];
         

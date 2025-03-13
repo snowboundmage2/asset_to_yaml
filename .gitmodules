@@ -4,3 +4,6 @@
 [submodule "tools/pngpp"]
 	path = tools/pngpp
 	url = https://github.com/usagi/pngpp.git
+[submodule "tools/zlib"]
+	path = tools/zlib
+	url = https://github.com/madler/zlib.git
