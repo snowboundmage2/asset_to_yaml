@@ -104,49 +104,6 @@ public:
         }
     }
 
-    AssetType determine_asset_type(const AssetEntry& current_asset) {
-        std::vector<uint8_t> out_bytes;
-        // Implement logic to determine the asset type based on the binary data
-        out_bytes = current_asset.data->to_bytes();
-        if (out_bytes == std::vector<uint8_t>{static_cast<uint8_t>(AssetType::Animation)}) {
-                return AssetType::Animation;
-            } else if (out_bytes == std::vector<uint8_t>{static_cast<uint8_t>(AssetType::Binary)}) {
-                return AssetType::Binary;
-            } else if (out_bytes == std::vector<uint8_t>{static_cast<uint8_t>(AssetType::DemoInput)}) {
-                return AssetType::DemoInput;
-            } else if (out_bytes == std::vector<uint8_t>{static_cast<uint8_t>(AssetType::Dialog)}) {
-                return AssetType::Dialog;
-            } else if (out_bytes == std::vector<uint8_t>{static_cast<uint8_t>(AssetType::GruntyQuestion)}) {
-                return AssetType::GruntyQuestion;
-            } else if (out_bytes == std::vector<uint8_t>{static_cast<uint8_t>(AssetType::LevelSetup)}) {
-                return AssetType::LevelSetup;
-            } else if (out_bytes == std::vector<uint8_t>{static_cast<uint8_t>(AssetType::Midi)}) {
-                return AssetType::Midi;
-            } else if (out_bytes == std::vector<uint8_t>{static_cast<uint8_t>(AssetType::Model)}) {
-                return AssetType::Model;
-            } else if (out_bytes == std::vector<uint8_t>{static_cast<uint8_t>(AssetType::QuizQuestion)}) {
-                return AssetType::QuizQuestion;
-            } else if (out_bytes == std::vector<uint8_t>{static_cast<uint8_t>(AssetType::Sprite)}) {
-                return AssetType::Sprite;
-            } else if (out_bytes == std::vector<uint8_t>{static_cast<uint8_t>(AssetType::Texture)}) {
-                return AssetType::Texture;
-            } else {
-                return AssetType::Binary;
-            }
-    } 
-/*         if (Animation::is_valid(data)) return AssetType::Animation;
-        if (Binary::is_valid(data)) return AssetType::Binary;
-        if (DemoButton::is_valid(data)) return AssetType::DemoInput;
-        if (Dialog::is_valid(data)) return AssetType::Dialog;
-        if (GruntyQuestion::is_valid(data)) return AssetType::GruntyQuestion;
-        if (LevelSetup::is_valid(data)) return AssetType::LevelSetup;
-        if (MidiSeqFile::is_valid(data)) return AssetType::Midi;
-        if (Model::is_valid(data)) return AssetType::Model;
-        if (QuizQuestion::is_valid(data)) return AssetType::QuizQuestion;
-        if (Sprite::is_valid(data)) return AssetType::Sprite;
-        if (Texture::is_valid(data)) return AssetType::Texture;
-        return AssetType::Binary; */
-
     void read(const std::filesystem::path& yaml_path) {
     }
 

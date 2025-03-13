@@ -16,11 +16,13 @@ private:
     std::array<BKString, 3> options;
 
 public:
+    // Constructor
     GruntyQuestion(std::vector<BKString> question, std::array<BKString, 3> options)
         : question(std::move(question)), options(options) {
             a_type = AssetType::GruntyQuestion;
         }
 
+    // Static function to construct from binary data
     static GruntyQuestion from_bytes(const std::vector<uint8_t>& in_bytes) {
         size_t offset = 6;
         uint8_t str_cnt = in_bytes[5];
@@ -44,6 +46,7 @@ public:
         return GruntyQuestion(q_text, o_text);
     }
 
+    // Static function to construct from a YAML file
     static GruntyQuestion read(const std::filesystem::path& path) {
         YAML::Node doc = YAML::LoadFile(path.string());
         if (doc["type"].as<std::string>() != "GruntyQuestion") {
@@ -64,6 +67,7 @@ public:
         return GruntyQuestion(q, a);
     }
 
+    // Convert to binary format
     std::vector<uint8_t> to_bytes() const override {
         std::vector<uint8_t> out = {0x01, 0x03, 0x00, 0x05, 0x00};
         out.push_back(static_cast<uint8_t>(question.size() + options.size()));
@@ -80,11 +84,12 @@ public:
         return out;
     }
 
+    // Get asset type
     AssetType get_type() const override {
-        //std::cout << "gruntyquestion::get_type() called" << std::endl;
         return AssetType::GruntyQuestion;
     }
 
+    // Write asset to YAML file
     void write(const std::filesystem::path& path) const override {
         std::ofstream bin_file(path);
         if (!bin_file) {
