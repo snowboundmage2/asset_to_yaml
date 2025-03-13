@@ -17,7 +17,6 @@ private:
 public:
     DemoButton(std::vector<ContInput> inputs, uint8_t frame1_flag)
         : inputs(std::move(inputs)), frame1_flag(frame1_flag) {
-            a_type = AssetType::DemoInput;
         }
 
     static DemoButton from_bytes(const std::vector<uint8_t>& in_bytes) {
@@ -25,18 +24,26 @@ public:
             return DemoButton({}, 0);
         }
 
+        // Read expected length
         uint32_t expected_length = (in_bytes[0] << 24) | (in_bytes[1] << 16) | (in_bytes[2] << 8) | in_bytes[3];
+
+        // Read frame1_flag
         uint8_t f1f = in_bytes[9];
 
+        // Parse inputs
         std::vector<ContInput> inputs;
-        for (size_t i = 4; i + 6 <= in_bytes.size(); i += 6) {
-            inputs.emplace_back(static_cast<int8_t>(in_bytes[i]), static_cast<int8_t>(in_bytes[i + 1]),
-                                static_cast<uint16_t>((in_bytes[i + 2] << 8) | in_bytes[i + 3]),
-                                in_bytes[i + 4]);
+        for (size_t i = 4; i + 5 < in_bytes.size(); i += 6) {
+            ContInput input;
+            input.x = static_cast<int8_t>(in_bytes[i]);
+            input.y = static_cast<int8_t>(in_bytes[i + 1]);
+            input.buttons = static_cast<uint16_t>((in_bytes[i + 2] << 8) | in_bytes[i + 3]);
+            input.frames = in_bytes[i + 4];
+            inputs.push_back(input);
         }
 
+        // Ensure expected length matches
         if (expected_length != inputs.size() * 6) {
-            throw std::runtime_error("Byte size mismatch in DemoButton");
+            throw std::runtime_error("Invalid DemoButtonFile: expected size mismatch.");
         }
 
         return DemoButton(inputs, f1f);
@@ -91,22 +98,23 @@ public:
     void write(const std::filesystem::path& path) const override {
         std::ofstream demo_file(path);
         if (!demo_file) {
-            throw std::runtime_error("Failed to create file");
+            throw std::runtime_error("Failed to open file: " + path.string());
         }
-
+    
         demo_file << "type: DemoInput\n";
-        demo_file << "flag: 0x" << std::hex << static_cast<int>(frame1_flag) << "\n";
+        demo_file << "flag: 0x" << std::hex << std::uppercase << static_cast<int>(frame1_flag) << "\n";
+    
         if (inputs.empty()) {
             demo_file << "inputs: []\n";
             return;
         }
+    
         demo_file << "inputs:\n";
         for (const auto& input : inputs) {
-            demo_file << "  - {x: " << static_cast<int>(input.get_x())
-                      << ", y: " << static_cast<int>(input.get_y())
-                      << ", buttons: 0x" << std::hex << static_cast<int>(input.get_buttons())
-                      << ", frames: " << std::dec << static_cast<int>(input.get_frames())
-                      << "}\n";
+            demo_file << "  - {x: " << std::setw(3) << static_cast<int>(input.x)
+                      << ", y: " << std::setw(3) << static_cast<int>(input.y)
+                      << ", buttons: 0x" << std::hex << std::setw(4) << std::setfill('0') << input.buttons
+                      << ", frames: " << std::dec << static_cast<int>(input.frames) << "}\n";
         }
     }
 };

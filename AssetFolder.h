@@ -8,6 +8,7 @@
 #include "AssetFactory.h"
 #include <optional>
 
+#include "DecompressionUtils.h"
 
 #include <vector>
 #include <filesystem>
@@ -80,12 +81,7 @@ public:
             std::vector<uint8_t> comp_bin(data_bytes.begin() + this_meta.offset, data_bytes.begin() + next_meta.offset);
 
             // Decompress if needed
-            std::vector<uint8_t> decomp_bin;
-            if (this_meta.c_flag) {
-                decomp_bin = decompress_data(comp_bin); //placeholder
-            } else {
-                decomp_bin = comp_bin;
-            } 
+            std::vector<uint8_t> decomp_bin = this_meta.c_flag ? DUunzip(comp_bin) : comp_bin;
 
             // Create asset using factory
             std::unique_ptr<Asset> asset = AssetFactory::from_seg_index_and_bytes(segment, i, decomp_bin);
@@ -243,16 +239,19 @@ public:
 
 private:
 
-AssetFolder(std::vector<AssetEntry> v_asset_entries) : v_asset_entries(std::move(v_asset_entries)) {}
+    AssetFolder(std::vector<AssetEntry> v_asset_entries) : v_asset_entries(std::move(v_asset_entries)) {}
 
-static std::vector<uint8_t> decompress_data(const std::vector<uint8_t>& compressed_data) {
-    // Decompression logic needs to be implemented here
-    return compressed_data; // Placeholder: return original data if no decompression is available
-}
-static std::vector<uint8_t> compress_data(const std::vector<uint8_t>& data) {
-    // Placeholder for compression logic (implement actual compression if needed)
-    return data; // Currently returns uncompressed data
-}
+    static std::vector<uint8_t> decompress_data(const std::vector<uint8_t>& compressed_data) {
+        // Decompression logic needs to be implemented here
+        return compressed_data; // Placeholder: return original data if no decompression is available
+    }
+    
+    static std::vector<uint8_t> compress_data(const std::vector<uint8_t>& data) {
+        // Placeholder for compression logic (implement actual compression if needed)
+        return data; // Currently returns uncompressed data
+    }
+
+    
 };
 
 #endif // ASSET_FOLDER_H

@@ -1,0 +1,11 @@
+[ 80%] Built target yaml-cpp
+[ 82%] Linking CXX executable AssetToYamlCPP
+/usr/bin/ld: CMakeFiles/AssetToYamlCPP.dir/main.cpp.o: in function `DUunzip(std::vector<unsigned char, std::allocator<unsigned char> > const&)':
+main.cpp:(.text+0xef): undefined reference to `inflateInit2_'
+/usr/bin/ld: main.cpp:(.text+0x1ca): undefined reference to `inflate'
+/usr/bin/ld: main.cpp:(.text+0x1fa): undefined reference to `inflateEnd'
+/usr/bin/ld: main.cpp:(.text+0x2ee): undefined reference to `inflateEnd'
+collect2: error: ld returned 1 exit status
+gmake[2]: *** [CMakeFiles/AssetToYamlCPP.dir/build.make:98: AssetToYamlCPP] Error 1
+gmake[1]: *** [CMakeFiles/Makefile2:149: CMakeFiles/AssetToYamlCPP.dir/all] Error 2
+gmake: *** [Makefile:91: all] Error 2
