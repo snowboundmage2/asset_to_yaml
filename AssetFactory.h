@@ -18,6 +18,7 @@
 
 class AssetFactory {
 public:
+    // aka from_seg_indx_and_bytes
     static std::unique_ptr<Asset> from_seg_index_and_bytes(size_t segment, size_t i, const std::vector<uint8_t>& in_bytes) {
         // Segment 0: Animation
         if (segment == 0) {
