@@ -32,6 +32,7 @@ public:
     }
 
     static AssetFolder from_bytes(const std::vector<uint8_t>& in_bytes) {
+        std::cout << "AssetFolder::from_bytes() called" << std::endl;
         // Ensure the input has at least 4 bytes
         if (in_bytes.size() < 4) {
             throw std::runtime_error("Invalid input: Not enough data.");
@@ -81,7 +82,9 @@ public:
             std::vector<uint8_t> comp_bin(data_bytes.begin() + this_meta.offset, data_bytes.begin() + next_meta.offset);
 
             // Decompress if needed
-            std::vector<uint8_t> decomp_bin = this_meta.c_flag ? DUunzip(comp_bin) : comp_bin;
+            std::cout << "Decompressing data" << this_meta.offset << std::endl;
+            std::vector<uint8_t> decomp_bin = this_meta.c_flag ? unzip_bk(comp_bin) : comp_bin;
+            std::cout << "Decompressed data" << this_meta.offset << std::endl;
 
             // Create asset using factory
             std::unique_ptr<Asset> asset = AssetFactory::from_seg_index_and_bytes(segment, i, decomp_bin);
@@ -226,9 +229,9 @@ public:
             std::string relative_path = fs::relative(elem_path, out_dir_path).string();
 
             // Write asset information to the YAML file
-            asset_yaml << containing_folder << "_" << std::hex << elem.uid << ": \n";
-            asset_yaml << " {type: " << data_type_str << ", offset: 0x" << (0x5E90 + elem.meta.offset) 
-                       << ", Symbol: " << elem.uid << "}\n";
+            asset_yaml << containing_folder << "_" << std::setw(4) << std::setfill('0') << std::hex << elem.uid << ": \n";
+            asset_yaml << " {type: " << data_type_str << ", offset: 0x" << std::setw(4) << std::setfill('0') << std::hex << (0x5E90 + elem.meta.offset) 
+                       << ", Symbol: " << std::setw(4) << std::setfill('0') << std::hex << elem.uid << "}\n";
 
             // Write the asset data to a file
             data->write(elem_path);
