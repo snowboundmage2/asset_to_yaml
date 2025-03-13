@@ -28,16 +28,13 @@ public:
     
     AssetEntry(size_t uid, size_t seg, AssetMeta meta, std::shared_ptr<Asset> data)
         : uid(uid), seg(seg), meta(meta), data(data) {
-        // std::cout << "AssetEntry created with uid: " << uid << ", data: " << (data ? "yes" : "no") << std::endl;
     }
 
     bool has_data() const {
-        //std::cout << "checking " << meta.offset << " for has_data" << std::endl;
         return data && data.get() != nullptr;
     }
     
     std::shared_ptr<Asset> get_asset() const {
-        //std::cout << "getting " << meta.offset << "'s asset data" << std::endl;
         return data;
     }
 

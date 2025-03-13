@@ -13,7 +13,6 @@ private:
 
 public:
     explicit Animation(std::vector<uint8_t> bytes) : bytes(std::move(bytes)) {
-        a_type = AssetType::Animation;
     }
 
     static Animation from_bytes(const std::vector<uint8_t>& in_bytes) {
@@ -35,7 +34,6 @@ public:
     }
 
     AssetType get_type() const override {
-        //std::cout << "animationasset::get_type() called" << std::endl;
         return AssetType::Animation;
     }
 
