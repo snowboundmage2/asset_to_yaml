@@ -24,7 +24,7 @@ public:
         }
 
     static Sprite from_bytes(const std::vector<uint8_t>& in_bytes) {
-        uint16_t frame_cnt = (in_bytes[0] << 8) | in_bytes[1];
+       /*  uint16_t frame_cnt = (in_bytes[0] << 8) | in_bytes[1];
         uint16_t format_code = (in_bytes[2] << 8) | in_bytes[3];
         
         ImgFmt frmt = static_cast<ImgFmt>(format_code);
@@ -46,7 +46,7 @@ public:
             frames.push_back(SpriteFrame::from_bytes(in_bytes, base_offset + offset, frmt));
         }
         
-        return Sprite(frmt, frames, in_bytes);
+        return Sprite(frmt, frames, in_bytes); */
     }
 
     static Sprite read(const std::filesystem::path& path) {

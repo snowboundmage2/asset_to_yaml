@@ -3,7 +3,11 @@
 
 #include "AssetEntry.h"
 #include "Asset.h"
+#include "AssetMeta.h"
 #include <iostream>
+#include "AssetFactory.h"
+#include <optional>
+
 
 #include <vector>
 #include <filesystem>
@@ -12,11 +16,11 @@
 #include "yaml-cpp/yaml.h"
 #include <iomanip>
 
+namespace fs = std::filesystem;
+
 class AssetFolder {
-private:
-    //AssetEntry current_asset;
-    //std::vector<uint8_t> out_bytes;
 public:
+
     std::vector<AssetEntry> v_asset_entries;
     AssetType asset_type;
 
@@ -27,102 +31,228 @@ public:
     }
 
     static AssetFolder from_bytes(const std::vector<uint8_t>& in_bytes) {
-        if (in_bytes.size() < 8) {
-            throw std::runtime_error("Invalid byte array size for AssetFolder");
+        // Ensure the input has at least 4 bytes
+        if (in_bytes.size() < 4) {
+            throw std::runtime_error("Invalid input: Not enough data.");
         }
-        size_t asset_slot_cnt = (in_bytes[0] << 24) | (in_bytes[1] << 16) | (in_bytes[2] << 8) | in_bytes[3];
-        
-        std::vector<AssetEntry> asset_list;
-        size_t table_size = asset_slot_cnt * 8;
-        auto table_bytes = std::vector<uint8_t>(in_bytes.begin() + 8, in_bytes.begin() + 8 + table_size);
-        auto data_bytes = std::vector<uint8_t>(in_bytes.begin() + 8 + table_size, in_bytes.end());
-        
+
+        // Read asset slot count (first 4 bytes)
+        size_t asset_slot_count = (in_bytes[0] << 24) | (in_bytes[1] << 16) | (in_bytes[2] << 8) | in_bytes[3];
+
+        // Ensure the input is large enough
+        if (in_bytes.size() < 8 + (8 * asset_slot_count)) {
+            throw std::runtime_error("Invalid input: Data too small.");
+        }
+
+        // Split metadata and actual asset data
+        std::vector<uint8_t> table_bytes(in_bytes.begin() + 8, in_bytes.begin() + 8 + (8 * asset_slot_count));
+        std::vector<uint8_t> data_bytes(in_bytes.begin() + 8 + (8 * asset_slot_count), in_bytes.end());
+
+        // Parse metadata
         std::vector<AssetMeta> meta_info;
-        for (size_t i = 0; i < asset_slot_cnt; i++) {
-            meta_info.push_back(AssetMeta::from_bytes({table_bytes.begin() + i * 8, table_bytes.begin() + (i + 1) * 8}));
+        for (size_t i = 0; i < asset_slot_count; ++i) {
+            std::vector<uint8_t> chunk(table_bytes.begin() + i * 8, table_bytes.begin() + (i + 1) * 8);
+            meta_info.push_back(AssetMeta::from_bytes(chunk));
         }
-        
-        for (size_t i = 0; i < asset_slot_cnt - 1; i++) {
+
+        std::vector<AssetEntry> asset_list;
+        size_t segment = 0;
+        uint16_t prev_t = 0x3; // Used for segment detection
+
+        for (size_t i = 0; i < meta_info.size() - 1; ++i) {
             const AssetMeta& this_meta = meta_info[i];
             const AssetMeta& next_meta = meta_info[i + 1];
-            std::vector<uint8_t> asset_data(data_bytes.begin() + this_meta.offset, data_bytes.begin() + next_meta.offset);
-            asset_list.emplace_back(i, 0, this_meta, nullptr);
-        }
-            
-        AssetFolder folder;
-        folder.v_asset_entries = std::move(asset_list);
-        return folder;
 
+            if (this_meta.t_flag == 4) { // Empty entry
+                asset_list.emplace_back(i, 0, this_meta, std::nullopt);
+                continue;
+            } else if ((this_meta.t_flag != 2) && ((prev_t & 2) != (this_meta.t_flag & 2))) {
+                segment += 1;
+                prev_t = this_meta.t_flag;
+            }
+
+            // Ensure valid offset range
+            if (this_meta.offset >= data_bytes.size() || next_meta.offset > data_bytes.size() || this_meta.offset >= next_meta.offset) {
+                throw std::runtime_error("Invalid offsets in metadata.");
+            }
+
+            // Extract compressed binary
+            std::vector<uint8_t> comp_bin(data_bytes.begin() + this_meta.offset, data_bytes.begin() + next_meta.offset);
+
+            // Decompress if needed
+            std::vector<uint8_t> decomp_bin;
+            if (this_meta.c_flag) {
+                decomp_bin = decompress_data(comp_bin); //placeholder
+            } else {
+                decomp_bin = comp_bin;
+            } 
+
+            // Create asset using factory
+            std::unique_ptr<Asset> asset = AssetFactory::from_seg_index_and_bytes(segment, i, decomp_bin);
+
+            // Store asset entry
+            asset_list.emplace_back(i, segment, this_meta, std::move(asset));
+        }
+
+        return AssetFolder{ asset_list };
     }
     
     std::vector<uint8_t> to_bytes() {
+        // Ensure the last asset is an empty entry if needed
+        if (!v_asset_entries.empty() && v_asset_entries.back().data.has_value()) {
+            v_asset_entries.emplace_back(v_asset_entries.size(), 0, AssetMeta{0, false, 4}, std::nullopt);
+        }
+
+        // Get compressed version if compressed
+        std::vector<std::vector<uint8_t>> comp_bins;
+        for (const auto& asset : v_asset_entries) {
+            if (!asset.data.has_value()) {
+                comp_bins.emplace_back(); // Empty vector for missing assets
+            } else {
+                const auto& asset_data = asset.data.value();
+                if (asset.meta.c_flag) {
+                    comp_bins.push_back(compress_data(asset_data->to_bytes())); // Compress
+                } else {
+                    comp_bins.push_back(asset_data->to_bytes()); // Raw bytes
+                }
+            }
+        }
+
+        // Update asset offsets
+        size_t offset = 0;
+        for (size_t i = 0; i < v_asset_entries.size(); ++i) {
+            v_asset_entries[i].meta.offset = offset;
+            offset += comp_bins[i].size();
+        }
+
+        // Convert everything to bytes
         std::vector<uint8_t> out;
-        size_t asset_count = v_asset_entries.size();
+        uint32_t asset_count = static_cast<uint32_t>(v_asset_entries.size());
+        
+        // Write asset count (big-endian)
         out.push_back((asset_count >> 24) & 0xFF);
         out.push_back((asset_count >> 16) & 0xFF);
         out.push_back((asset_count >> 8) & 0xFF);
         out.push_back(asset_count & 0xFF);
+
+        // Add padding bytes
         out.insert(out.end(), {0xFF, 0xFF, 0xFF, 0xFF});
-        
-        std::vector<uint8_t> meta_bytes;
-        std::vector<uint8_t> data_bytes;
-        size_t offset = 0;
-        for (auto& asset : v_asset_entries) {
-            auto asset_data = asset.data ? asset.data->to_bytes() : std::vector<uint8_t>();
-            asset.meta.offset = offset;
-            meta_bytes.insert(meta_bytes.end(), asset.meta.to_bytes().begin(), asset.meta.to_bytes().end());
-            data_bytes.insert(data_bytes.end(), asset_data.begin(), asset_data.end());
-            offset += asset_data.size();
+
+        // Write metadata
+        for (const auto& asset : v_asset_entries) {
+            std::vector<uint8_t> meta_bytes = asset.meta.to_bytes();
+            out.insert(out.end(), meta_bytes.begin(), meta_bytes.end());
         }
-        out.insert(out.end(), meta_bytes.begin(), meta_bytes.end());
-        out.insert(out.end(), data_bytes.begin(), data_bytes.end());
+
+        // Write data
+        for (const auto& bin : comp_bins) {
+            out.insert(out.end(), bin.begin(), bin.end());
+        }
+
+        // Remove last placeholder asset
+        v_asset_entries.pop_back();
+
         return out;
     }
 
-    void write(const std::filesystem::path& out_dir_path) {
-        std::ofstream asset_yaml(out_dir_path / "assets.yaml");
-        if (!asset_yaml) {
-            throw std::runtime_error("Could not write assets.yaml");
-        }        
-        
-        std::cout << "Starting write loop" << std::endl;
-        for (const auto& asset_entry : v_asset_entries) {
-            std::shared_ptr<Asset> data = asset_entry.data;
-            std::vector<uint8_t> out_bytes = data ? data->to_bytes() : std::vector<uint8_t>();
-            std::string out(out_bytes.begin(), out_bytes.end());
-            // Debug: Print asset entry meta information
-            //std::cout << std::hex << asset_entry.meta.from_bytes << std::endl;
-            //std::cout << std::hex << asset_entry.meta.to_bytes << std::endl;
-            //std::cout << out << std::endl;
-            std::cout << "Asset entry meta - Offset: " << std::to_string(asset_entry.meta.offset) << std::endl;
+    void write(const fs::path& out_dir_path) {
+        fs::path asset_yaml_path = out_dir_path / "assets.yaml";
 
-            asset_yaml << "  - { Symbol: " << std::hex << std::setw(4) << \
-            std::setfill('0') << asset_entry.uid << std::dec << ", Offset: "  << \
-            std::hex << std::setw(4) << std::setfill('0') << asset_entry.meta.offset << \
-            std::dec << ", frombytes: " << asset_entry.meta.from_bytes << " }" << \
-            std::endl;
+        // Open YAML file
+        std::ofstream asset_yaml(asset_yaml_path);
+        if (!asset_yaml.is_open()) {
+            throw std::runtime_error("Could not write file: " + asset_yaml_path.string());
         }
-    }
 
-    void read(const std::filesystem::path& yaml_path) {
-    }
+        // Iterate over assets that contain data
+        for (const auto& elem : v_asset_entries) {
+            if (!elem.data.has_value()) continue;  // Skip empty assets
 
-    std::string get_asset_type_string(const AssetType& type) {
-        switch (type) {
-            case AssetType::Animation: return "Animation";
-            case AssetType::Binary: return "Binary";
-            case AssetType::DemoInput: return "DemoInput";
-            case AssetType::Dialog: return "Dialog";
-            case AssetType::GruntyQuestion: return "GruntyQuestion";
-            case AssetType::Midi: return "Midi";
-            case AssetType::Model: return "Model";
-            case AssetType::LevelSetup: return "LevelSetup";
-            case AssetType::QuizQuestion: return "QuizQuestion";
-            case AssetType::Sprite: return "Sprite"; // Sprite needs special handling
-            default: return "Binary";
+            std::shared_ptr<Asset> data = elem.data.value();  // Get the asset data
+            if (!data) {
+                throw std::runtime_error("Asset data is null for UID: " + std::to_string(elem.uid));
+            }
+
+            // Determine asset type as string
+            std::string data_type_str;
+            switch (data->get_type()) {
+                case AssetType::Animation: data_type_str = "ANIMATION"; break;
+                case AssetType::Binary: data_type_str = "BINARY"; break;
+                case AssetType::DemoInput: data_type_str = "DEMOINPUT"; break;
+                case AssetType::Dialog: data_type_str = "DIALOG"; break;
+                case AssetType::GruntyQuestion: data_type_str = "GRUNTYQUESTION"; break;
+                case AssetType::Midi: data_type_str = "MIDI"; break;
+                case AssetType::Model: data_type_str = "MODEL"; break;
+                case AssetType::LevelSetup: data_type_str = "LEVELSETUP"; break;
+                case AssetType::QuizQuestion: data_type_str = "QUIZQUESTION"; break;
+                case AssetType::Sprite: data_type_str = "SPRITE"; break;
+                default: data_type_str = "BINARY"; break;
+            }
+
+            // Determine file extension
+            std::string file_ext;
+            switch (data->get_type()) {
+                case AssetType::Binary: file_ext = ".bin"; break;
+                case AssetType::Dialog: file_ext = ".dialog"; break;
+                case AssetType::GruntyQuestion: file_ext = ".grunty_q"; break;
+                case AssetType::QuizQuestion: file_ext = ".quiz_q"; break;
+                case AssetType::DemoInput: file_ext = ".demo"; break;
+                case AssetType::Midi: file_ext = ".midi.bin"; break;
+                case AssetType::Model: file_ext = ".model.bin"; break;
+                case AssetType::LevelSetup: file_ext = ".lvl_setup.bin"; break;
+                case AssetType::Animation: file_ext = ".anim.bin"; break;
+                case AssetType::Sprite: file_ext = ".sprite.bin"; break;
+                default: file_ext = ".bin"; break;
+            }
+
+            // Determine containing folder based on asset type
+            std::string containing_folder;
+            switch (data->get_type()) {
+                case AssetType::Binary: containing_folder = "bin"; break;
+                case AssetType::Dialog: containing_folder = "dialog"; break;
+                case AssetType::GruntyQuestion: containing_folder = "grunty_q"; break;
+                case AssetType::QuizQuestion: containing_folder = "quiz_q"; break;
+                case AssetType::DemoInput: containing_folder = "demo"; break;
+                case AssetType::Midi: containing_folder = "midi"; break;
+                case AssetType::Model: containing_folder = "model"; break;
+                case AssetType::LevelSetup: containing_folder = "lvl_setup"; break;
+                case AssetType::Animation: containing_folder = "anim"; break;
+                case AssetType::Sprite: containing_folder = "sprite"; break;
+                default: containing_folder = "bin"; break;
+            }
+
+            // Create the directory if it doesn't exist
+            fs::path elem_folder = out_dir_path / containing_folder;
+            fs::create_directories(elem_folder);
+
+            // Construct full file path
+            fs::path elem_path = elem_folder / (std::to_string(elem.uid) + file_ext);
+            std::string relative_path = fs::relative(elem_path, out_dir_path).string();
+
+            // Write asset information to the YAML file
+            asset_yaml << containing_folder << "_" << std::hex << elem.uid << ": \n";
+            asset_yaml << " {type: " << data_type_str << ", offset: 0x" << (0x5E90 + elem.meta.offset) 
+                       << ", Symbol: " << elem.uid << "}\n";
+
+            // Write the asset data to a file
+            data->write(elem_path);
         }
+
+        asset_yaml.close();
     }
-    
+
+private:
+
+AssetFolder(std::vector<AssetEntry> v_asset_entries) : v_asset_entries(std::move(v_asset_entries)) {}
+
+static std::vector<uint8_t> decompress_data(const std::vector<uint8_t>& compressed_data) {
+    // Decompression logic needs to be implemented here
+    return compressed_data; // Placeholder: return original data if no decompression is available
+}
+static std::vector<uint8_t> compress_data(const std::vector<uint8_t>& data) {
+    // Placeholder for compression logic (implement actual compression if needed)
+    return data; // Currently returns uncompressed data
+}
 };
 
 #endif // ASSET_FOLDER_H

@@ -23,6 +23,7 @@ add_executable(${PROJECT_NAME}
     AT_Texture.h
     Asset.h
     AssetEntry.h
+    AssetFactory.h
     AssetFolder.h
     AssetMeta.h
     AssetType.h

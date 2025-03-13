@@ -3,6 +3,7 @@
 
 #include "AssetMeta.h"
 #include "Asset.h"
+#include <optional>
 #include <memory>
 #include <stdexcept>
 #include "yaml-cpp/yaml.h"
@@ -23,32 +24,27 @@ public:
     size_t uid;
     size_t seg;
     AssetMeta meta;
-    std::shared_ptr<Asset> data;
-    AssetType ae_type;
+    std::optional<std::shared_ptr<Asset>> data;
     
-    AssetEntry(size_t uid, size_t seg, AssetMeta meta, std::shared_ptr<Asset> data)
-        : uid(uid), seg(seg), meta(meta), data(data) {
-    }
+    // Default constructor
+    AssetEntry(size_t uid)
+        : uid(uid), seg(0), meta({0, false, 4}), data(std::nullopt) {}
 
-    bool has_data() const {
-        return data && data.get() != nullptr;
-    }
-    
-    std::shared_ptr<Asset> get_asset() const {
-        return data;
-    }
+    AssetEntry(size_t uid, size_t seg, const AssetMeta& meta, std::optional<std::shared_ptr<Asset>> data)
+        : uid(uid), seg(seg), meta(meta), data(std::move(data)) {}
 
+    // Static method to create AssetEntry from YAML
     static AssetEntry from_yaml(const YAML::Node& yaml) {
         if (!yaml["uid"].IsDefined() || !yaml["uid"].IsScalar()) {
-            throw std::runtime_error("Could not read uid as an integer");
+            throw std::runtime_error("Could not read UID as an integer");
         }
 
         size_t uid = yaml["uid"].as<size_t>();
         bool c_type = yaml["compressed"].as<bool>();
         uint16_t t_type = yaml["flags"].as<uint16_t>();
 
-        AssetMeta meta(0, c_type, t_type);
-        return AssetEntry(uid, 0, meta, nullptr);
+        AssetMeta meta = {0, c_type, t_type};
+        return AssetEntry(uid, 0, meta, std::nullopt);
     }
 
     AssetType string_to_type(const std::string& typeStr) const {
@@ -93,6 +89,8 @@ private:
     std::shared_ptr<QuizQuestion> quizquestion_;
     std::shared_ptr<Sprite> sprite_;
     std::shared_ptr<Texture> texture_;
+
+    
 
 };
 
