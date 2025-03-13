@@ -230,7 +230,7 @@ public:
 
             // Write asset information to the YAML file
             asset_yaml << containing_folder << "_" << std::setw(4) << std::setfill('0') << std::hex << elem.uid << ": \n";
-            asset_yaml << " {type: " << data_type_str << ", offset: 0x" << std::setw(4) << std::setfill('0') << std::hex << (0x5E90 + elem.meta.offset) 
+            asset_yaml << " {type: " << data_type_str << ", offset: 0x" << std::setw(8) << std::setfill('0') << std::hex << (0x5E90 + elem.meta.offset) 
                        << ", Symbol: " << std::setw(4) << std::setfill('0') << std::hex << elem.uid << "}\n";
 
             // Write the asset data to a file
