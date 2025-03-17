@@ -4,8 +4,8 @@
 #include <vector>
 #include <filesystem>
 #include <stdexcept>
+#include <iomanip>
 
-#include "AssetFolder.h"
 #include "AT_Animation.h"
 #include "AT_Binary.h"
 #include "AT_DemoButton.h"
@@ -56,18 +56,87 @@ int main(int argc, char* argv[]) {
                 throw std::runtime_error("Could not open input file");
             }
 
+            /**
+             * @brief Reads the contents of the input file into a vector of bytes.
+             * 
+             * This line of code initializes a std::vector<uint8_t> named in_bytes by reading
+             * all the bytes from the input_file stream. It uses an istreambuf_iterator to 
+             * iterate over the characters in the input file and constructs the vector with 
+             * those bytes.
+             * 
+             * @param input_file The input file stream from which bytes are read.
+             * @return A vector containing the bytes read from the input file.
+             */
             std::vector<uint8_t> in_bytes((std::istreambuf_iterator<char>(input_file)), {});
-            AssetFolder af = AssetFolder::from_bytes(in_bytes);    
-            std::cout << "Created AssetFolder from bytes." << std::endl;
-       
+/* 
+            std::ofstream logfile("output_log.txt");
+            if (!logfile) {
+                std::cerr << "Failed to open output_log.txt for writing." << std::endl;
+                return 1;
+            }
+
+            int i;
+            i=0;
+
+            size_t asset_slot_count = (in_bytes[0] << 24) | (in_bytes[1] << 16) | (in_bytes[2] << 8) | in_bytes[3];
+            logfile << "Asset Slot Count: " << static_cast<int>(asset_slot_count) << std::endl;
+            logfile << "asset_slot_count: 0x" << std::hex << std::setw(4) << std::setfill('0') << static_cast<int>(asset_slot_count) << std::endl;
+            std::vector<uint8_t> table_bytes(in_bytes.begin() + 8, in_bytes.begin() + 8 + (8 * asset_slot_count));
+            logfile << "Table Bytes: " << std::endl;
+            for (const auto& byte : table_bytes) {
+                logfile << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(byte) << " ";
+                while (i < 8){
+                    i++;
+                    if (i == 8){
+                        logfile << std::endl;
+                        i = 0;
+                    }
+                    break;
+                }
+            }
+            std::vector<uint8_t> data_bytes(in_bytes.begin() + 8 + (8 * asset_slot_count), in_bytes.end());
+            logfile << "Data Bytes: " << std::endl;
+            for (const auto& byte : data_bytes) {
+                logfile << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(byte) << " ";
+                while (i < 8){
+                    i++;
+                    if (i == 8){
+                        logfile << std::endl;
+                        i = 0;
+                    }
+                    break;
+                }
+            }
+
+            logfile << "raw in_bytes: " << std::endl;
+            for (const auto& byte : in_bytes) {
+                logfile << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(byte) << " ";
+                while (i < 8){
+                    i++;
+                    if (i == 8){
+                        logfile << std::endl;
+                        i = 0;
+                    }
+                    break;
+                }
+            }
+
+            // Close the file
+            logfile.close(); */
+
+            // Create AssetFolder(af) variable from input_file>vector(aka in_bytes) returning from assetfolder::from_bytes function
+            //this is only done once
+            AssetFolder af = AssetFolder::from_bytes(in_bytes);
+
             std::filesystem::create_directories(out_path);
             if (!std::filesystem::is_directory(out_path)) {
                 throw std::runtime_error("Output path is not a directory");
             }
-            std::cout << "Created driectory from outpath." << std::endl;
+            //std::cout << "Created driectory from outpath." << std::endl;
 
+            //this is also done once
             af.write(out_path);
-            std::cout << "Wrote AssetFolder to output path." << std::endl;
+            
 
         } else {/* 
             disabled compact/create for now

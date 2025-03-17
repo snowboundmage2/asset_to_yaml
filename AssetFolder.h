@@ -32,13 +32,23 @@ public:
     }
 
     static AssetFolder from_bytes(const std::vector<uint8_t>& in_bytes) {
-        std::cout << "AssetFolder::from_bytes() called" << std::endl;
+        //std::cout << "AssetFolder::from_bytes() called" << std::endl;
         // Ensure the input has at least 4 bytes
         if (in_bytes.size() < 4) {
             throw std::runtime_error("Invalid input: Not enough data.");
         }
 
         // Read asset slot count (first 4 bytes)
+        /**
+         * @brief Extracts the asset slot count from the first four bytes of the input byte array.
+         * 
+         * This line of code combines the first four bytes of the input byte array (in_bytes)
+         * into a single size_t value representing the asset slot count. The bytes are shifted
+         * and combined using bitwise OR operations to form the final value.
+         * 
+         * @param in_bytes The input byte array containing the asset slot count in the first four bytes.
+         * @return The asset slot count as a size_t value.
+         */
         size_t asset_slot_count = (in_bytes[0] << 24) | (in_bytes[1] << 16) | (in_bytes[2] << 8) | in_bytes[3];
 
         // Ensure the input is large enough
@@ -82,9 +92,7 @@ public:
             std::vector<uint8_t> comp_bin(data_bytes.begin() + this_meta.offset, data_bytes.begin() + next_meta.offset);
 
             // Decompress if needed
-            std::cout << "Decompressing data" << this_meta.offset << std::endl;
             std::vector<uint8_t> decomp_bin = this_meta.c_flag ? unzip_bk(comp_bin) : comp_bin;
-            std::cout << "Decompressed data" << this_meta.offset << std::endl;
 
             // Create asset using factory
             std::unique_ptr<Asset> asset = AssetFactory::from_seg_index_and_bytes(segment, i, decomp_bin);
@@ -175,16 +183,16 @@ public:
             // Determine asset type as string
             std::string data_type_str;
             switch (data->get_type()) {
-                case AssetType::Animation: data_type_str = "ANIMATION"; break;
+                case AssetType::Animation: data_type_str = "BK64::ANIMATION"; break;
                 case AssetType::Binary: data_type_str = "BINARY"; break;
-                case AssetType::DemoInput: data_type_str = "DEMOINPUT"; break;
-                case AssetType::Dialog: data_type_str = "DIALOG"; break;
-                case AssetType::GruntyQuestion: data_type_str = "GRUNTYQUESTION"; break;
-                case AssetType::Midi: data_type_str = "MIDI"; break;
-                case AssetType::Model: data_type_str = "MODEL"; break;
-                case AssetType::LevelSetup: data_type_str = "LEVELSETUP"; break;
-                case AssetType::QuizQuestion: data_type_str = "QUIZQUESTION"; break;
-                case AssetType::Sprite: data_type_str = "SPRITE"; break;
+                case AssetType::DemoInput: data_type_str = "BK64:DEMOINPUT"; break;
+                case AssetType::Dialog: data_type_str = "BK64:DIALOG"; break;
+                case AssetType::GruntyQuestion: data_type_str = "BK64:GRUNTYQUIZ"; break;
+                case AssetType::Midi: data_type_str = "BK64:MIDI"; break;
+                case AssetType::Model: data_type_str = "BK64:MODEL"; break;
+                case AssetType::LevelSetup: data_type_str = "BK64:LEVELSETUP"; break;
+                case AssetType::QuizQuestion: data_type_str = "BK64:QUESTION"; break;
+                case AssetType::Sprite: data_type_str = "BK64:SPRITE"; break;
                 default: data_type_str = "BINARY"; break;
             }
 
@@ -218,7 +226,33 @@ public:
                 case AssetType::Animation: containing_folder = "anim"; break;
                 case AssetType::Sprite: containing_folder = "sprite"; break;
                 default: containing_folder = "bin"; break;
-            }
+            }   
+
+            std::string asset_to_enum_names;
+            switch (data->get_type()) {
+                case AssetType::Animation: asset_to_enum_names = "ANIM"; break;
+                case AssetType::Binary: asset_to_enum_names = "SKIP"; break;
+                case AssetType::DemoInput: asset_to_enum_names = "SKIP"; break;
+                case AssetType::Dialog: asset_to_enum_names = "DIALOG"; break;
+                case AssetType::GruntyQuestion: asset_to_enum_names = "SKIP"; break;
+                case AssetType::LevelSetup: asset_to_enum_names = "SKIP"; break;
+                case AssetType::Midi: asset_to_enum_names = "SKIP"; break;
+                case AssetType::Model: asset_to_enum_names = "MODEL"; break;
+                case AssetType::QuizQuestion: asset_to_enum_names = "SKIP"; break;
+                case AssetType::Sprite: asset_to_enum_names = "SPRITE"; break;
+                default: asset_to_enum_names = "SKIP"; break;
+            } 
+            
+            // 'Animation': 'ANIM',
+            // 'Model': 'MODEL',
+            // 'Sprite_I4': 'SPRITE',
+            // 'Sprite_I8': 'SPRITE',
+            // 'Sprite_CI4': 'SPRITE',
+            // 'Sprite_CI8': 'SPRITE',
+            // 'Sprite_RGBA16': 'SPRITE',
+            // 'Sprite_RGBA32': 'SPRITE',
+            // 'Sprite_UNKNOWN(256)': 'SPRITE',
+            // 'Dialog': 'DIALOG',
 
             // Create the directory if it doesn't exist
             fs::path elem_folder = out_dir_path / containing_folder;
@@ -228,11 +262,19 @@ public:
             fs::path elem_path = elem_folder / (std::to_string(elem.uid) + file_ext);
             std::string relative_path = fs::relative(elem_path, out_dir_path).string();
 
+            int assetLength;
+            assetLength = (elem.uid < v_asset_entries.size() - 1) ? v_asset_entries[elem.uid + 1].meta.offset - elem.meta.offset : 0;
+            
             // Write asset information to the YAML file
+            //name
             asset_yaml << containing_folder << "_" << std::setw(4) << std::setfill('0') << std::hex << elem.uid << ": \n";
-            asset_yaml << " {type: " << data_type_str << ", offset: 0x" << std::setw(8) << std::setfill('0') << std::hex << (0x5E90 + elem.meta.offset) 
-                       << ", Symbol: " << std::setw(4) << std::setfill('0') << std::hex << elem.uid << "}\n";
-
+            //needed yaml entries
+            //asset_yaml << " {Type: " << data_type_str << ", Offset: 0x" << std::setw(8) << std::setfill('0') << std::hex << elem.meta.offset
+            asset_yaml << " {type: " << "BK64:BINARY" << ", offset: 0x" << std::setw(8) << std::setfill('0') << std::hex << (0x5E90 + elem.meta.offset)    \
+                       << ", symbol: " << std::setw(4) << std::setfill('0') << std::hex << elem.uid << ", compressed: " << elem.meta.c_flag <<  \
+                       ", size: " << std::dec << assetLength << ", t_flag: " << elem.meta.t_flag << ", subtype: " << data_type_str << "}\n"; 
+                       // << ", assetenum: "<< "ASSET_" << elem.uid << "_" << "}\n"; 
+            
             // Write the asset data to a file
             data->write(elem_path);
         }
@@ -254,7 +296,6 @@ private:
         return data; // Currently returns uncompressed data
     }
 
-    
 };
 
 #endif // ASSET_FOLDER_H

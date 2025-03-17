@@ -35,7 +35,6 @@ public:
     }
 
     AssetType get_type() const override {
-        //std::cout << "levelsetup::get_type() called" << std::endl;
         return AssetType::LevelSetup;
     }
 

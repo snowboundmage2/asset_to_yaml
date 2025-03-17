@@ -11,6 +11,9 @@
 
 class Texture : public Asset {
 public:
+
+    std::vector<uint8_t> bytes;
+
     ImgFmt texture_type;
     size_t width;
     size_t height;
@@ -84,12 +87,11 @@ public:
     static std::vector<uint8_t> ia8_to_rgba32(const std::vector<uint8_t>& ia8);
 
     void write(const std::filesystem::path& path) const override {
-        std::ofstream out_file(path, std::ios::binary);
-        if (!out_file) {
-            throw std::runtime_error("Could not open file for writing");
+        std::ofstream file(path, std::ios::binary);
+        if (!file) {
+            throw std::runtime_error("Failed to create file");
         }
-        std::vector<uint8_t> bytes = to_bytes();
-        out_file.write(reinterpret_cast<const char*>(bytes.data()), bytes.size());
+        file.write(reinterpret_cast<const char*>(bytes.data()), bytes.size());
     }
 
 };

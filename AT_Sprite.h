@@ -71,7 +71,7 @@ public:
         return AssetType::Sprite;
     }
 
-    void write(const std::filesystem::path& path) const override {
+    /* void write(const std::filesystem::path& path) const override {
         std::ofstream bin_file(path, std::ios::binary);
         if (!bin_file) {
             throw std::runtime_error("Failed to create file");
@@ -96,7 +96,7 @@ public:
                 throw std::runtime_error("Failed to create PNG file");
             }
             
-/*             png::image<png::rgb_pixel> image(frames[i].width, frames[i].height);
+            png::image<png::rgb_pixel> image(frames[i].width, frames[i].height);
             for (size_t y = 0; y < frames[i].height; ++y) {
                 for (size_t x = 0; x < frames[i].width; ++x) {
                     size_t idx = (y * frames[i].width + x) * 4;
@@ -107,9 +107,16 @@ public:
                     );
                     image.set_pixel(x, y, rgb_pixel);
                 }
-            } */
+            }
             // image.write(img_path.string());
         }
+    } */
+    void write(const std::filesystem::path& path) const override {
+        std::ofstream file(path, std::ios::binary);
+        if (!file) {
+            throw std::runtime_error("Failed to create file");
+        }
+        file.write(reinterpret_cast<const char*>(bytes.data()), bytes.size());
     }
 };
 

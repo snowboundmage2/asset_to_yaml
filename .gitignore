@@ -2,3 +2,5 @@ build/
 tools/
 .vscode/
 cmake_build/
+errors.txt
+build_output.log
