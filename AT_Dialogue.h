@@ -17,7 +17,6 @@ private:
 public:
     Dialog(std::vector<BKString> bottom, std::vector<BKString> top)
         : bottom(std::move(bottom)), top(std::move(top)) {
-            a_type = AssetType::Dialog;
         }
 
     static Dialog from_bytes(const std::vector<uint8_t>& in_bytes) {

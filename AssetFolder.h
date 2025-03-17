@@ -259,9 +259,14 @@ public:
             fs::create_directories(elem_folder);
 
             // Construct full file path
-            fs::path elem_path = elem_folder / (std::to_string(elem.uid) + file_ext);
-            std::string relative_path = fs::relative(elem_path, out_dir_path).string();
+            /* fs::path elem_path = elem_folder / (std::to_string(elem.uid) + file_ext);
+            std::string relative_path = fs::relative(elem_path, out_dir_path).string();           */  
 
+            std::stringstream ss;
+            ss << std::hex << elem.uid;
+            fs::path elem_path = elem_folder / (ss.str() + file_ext);
+            std::string relative_path = fs::relative(elem_path, out_dir_path).string();
+            
             int assetLength;
             assetLength = (elem.uid < v_asset_entries.size() - 1) ? v_asset_entries[elem.uid + 1].meta.offset - elem.meta.offset : 0;
             
@@ -272,7 +277,8 @@ public:
             //asset_yaml << " {Type: " << data_type_str << ", Offset: 0x" << std::setw(8) << std::setfill('0') << std::hex << elem.meta.offset
             asset_yaml << " {type: " << "BK64:BINARY" << ", offset: 0x" << std::setw(8) << std::setfill('0') << std::hex << (0x5E90 + elem.meta.offset)    \
                        << ", symbol: " << std::setw(4) << std::setfill('0') << std::hex << elem.uid << ", compressed: " << elem.meta.c_flag <<  \
-                       ", size: " << std::dec << assetLength << ", t_flag: " << elem.meta.t_flag << ", subtype: " << data_type_str << "}\n"; 
+                       ", length: " << std::dec << assetLength << ", t_flag: " << elem.meta.t_flag << ", subtype: " << data_type_str << \
+                       ", size: " <<"}\n"; 
                        // << ", assetenum: "<< "ASSET_" << elem.uid << "_" << "}\n"; 
             
             // Write the asset data to a file

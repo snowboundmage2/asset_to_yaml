@@ -18,7 +18,6 @@ private:
 public:
     QuizQuestion(std::vector<BKString> question, std::array<BKString, 3> options)
         : question(std::move(question)), options(options) {
-            a_type = AssetType::QuizQuestion;
         }
 
     static QuizQuestion from_bytes(const std::vector<uint8_t>& in_bytes) {
@@ -81,7 +80,6 @@ public:
     }
 
     AssetType get_type() const override {
-        //std::cout << "quizquestion::get_type() called" << std::endl;
         return AssetType::QuizQuestion;
     }
 

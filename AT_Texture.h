@@ -23,7 +23,6 @@ public:
 
     Texture(ImgFmt texture_type, size_t w, size_t h, const std::vector<uint8_t>& bin)
         : texture_type(texture_type), width(w), height(h), data(bin) {
-            a_type = AssetType::Texture;
         } 
 /*     Texture(ImgFmt texture_type, size_t w, size_t h, const std::vector<uint8_t>& bin)
     : texture_type(texture_type), width(w), height(h) {

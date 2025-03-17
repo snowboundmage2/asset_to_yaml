@@ -19,7 +19,6 @@ public:
     // Constructor
     GruntyQuestion(std::vector<BKString> question, std::array<BKString, 3> options)
         : question(std::move(question)), options(options) {
-            a_type = AssetType::GruntyQuestion;
         }
 
     // Static function to construct from binary data

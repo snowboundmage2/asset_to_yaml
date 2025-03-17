@@ -13,7 +13,6 @@ private:
 
 public:
     explicit LevelSetup(std::vector<uint8_t> bytes) : bytes(std::move(bytes)) {
-        a_type = AssetType::LevelSetup;
     }
 
     static LevelSetup from_bytes(const std::vector<uint8_t>& in_bytes) {
