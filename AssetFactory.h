@@ -52,7 +52,9 @@ public:
             if (in_bytes.size() >= 3 && in_bytes[0] == 0x01 && in_bytes[1] == 0x03 && in_bytes[2] == 0x00) {
                 return std::make_unique<Dialog>(Dialog::from_bytes(in_bytes));
             }
-            return std::make_unique<DemoButton>(DemoButton::from_bytes(in_bytes));
+            //return std::make_unique<DemoButtonFile>(DemoButtonFile::from_bytes(in_bytes));
+            return std::make_unique<Binary>(Binary::from_bytes(in_bytes));
+
         }
 
         // Segment 5: Model

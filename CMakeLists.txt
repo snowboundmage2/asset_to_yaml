@@ -28,13 +28,18 @@ add_executable(${PROJECT_NAME}
     AssetMeta.h
     AssetType.h
     BKString.h
-    DecompressionUtils.h
+    #code_660.c
+    # DecompressionUtils.cpp
+    #DecompressionUtils.h
     ContInput.h
     ImgFmt.h
+    #inflate.c
+    #rarezip.h
     SpriteChunk.h
     SpriteFrame.h
     StringToVecu8.h
     Vecu8ToString.h
+    librarezip.h
 )
 
 # Include directories
@@ -42,14 +47,15 @@ include_directories(
     #skipping png support for now
     #${PROJECT_SOURCE_DIR}/tools/pngpp
     ${PROJECT_SOURCE_DIR}/tools/yamlcpp
-    ${PROJECT_SOURCE_DIR}/tools/zlib
 )
 
 add_subdirectory(tools/yamlcpp)
-add_subdirectory(tools/zlib)
 
+#add library librarezip.a
+add_library(librarezip STATIC IMPORTED)
+set_property(TARGET librarezip PROPERTY IMPORTED_LOCATION ${PROJECT_SOURCE_DIR}/librarezip.a)
 
-target_link_libraries(${PROJECT_NAME} yaml-cpp zlib)
+target_link_libraries(${PROJECT_NAME} yaml-cpp librarezip)
 
 # Add any additional libraries if needed
 # target_link_libraries(MyProject <library_name>)

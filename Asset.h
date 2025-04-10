@@ -16,7 +16,6 @@ public:
     virtual std::vector<uint8_t> to_bytes() const = 0;
     virtual AssetType get_type() const = 0;
     virtual void write(const std::filesystem::path& path) const = 0;
-    AssetType a_type;
 };
 
 #endif // ASSET_H

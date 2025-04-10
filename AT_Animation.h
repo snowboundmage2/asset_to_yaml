@@ -8,42 +8,50 @@
 #include <stdexcept>
 
 class Animation : public Asset {
-private:
-    std::vector<uint8_t> bytes;
+    private:
 
-public:
-    explicit Animation(std::vector<uint8_t> bytes) : bytes(std::move(bytes)) {
-    }
-
-    static Animation from_bytes(const std::vector<uint8_t>& in_bytes) {
-        return Animation(in_bytes);
-    }
+        std::vector<uint8_t> bytes;
     
-    static Animation read(const std::filesystem::path& path) {
-        std::ifstream file(path, std::ios::binary);
-        if (!file) {
-            throw std::runtime_error("Failed to open file");
+    public:
+        // Constructor from bytes
+        explicit Animation(const std::vector<uint8_t>& in_bytes) : bytes(in_bytes) {
         }
-        
-        std::vector<uint8_t> buffer((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-        return Animation(buffer);
-    }
-
-    std::vector<uint8_t> to_bytes() const override {
-        return bytes;
-    }
-
-    AssetType get_type() const override {
-        return AssetType::Animation;
-    }
-
-    void write(const std::filesystem::path& path) const override {
-        std::ofstream file(path, std::ios::binary);
-        if (!file) {
-            throw std::runtime_error("Failed to create file");
+    
+        // Static function to create an Animation from raw bytes
+        static Animation from_bytes(const std::vector<uint8_t>& in_bytes) {
+            return Animation(in_bytes);
         }
-        file.write(reinterpret_cast<const char*>(bytes.data()), bytes.size());
-    }
+    
+        // Static function to read from file
+        static Animation read(const std::filesystem::path& path) {
+            std::cout << "Animation::read() called" << std::endl;
+            std::ifstream file(path, std::ios::binary);
+            if (!file) {
+                throw std::runtime_error("Failed to open file: " + path.string());
+            }
+            return Animation(std::vector<uint8_t>(std::istreambuf_iterator<char>(file), {}));
+        }
+    
+        // Convert to bytes
+        std::vector<uint8_t> to_bytes() const override {
+            std::cout << "Animation::to_bytes() called" << std::endl;
+            return bytes;
+        }
+    
+        // Get asset type
+        AssetType get_type() const override {
+            return AssetType::Animation;
+        }
+    
+        // Write to file
+        void write(const std::filesystem::path& path) const override {
+
+            std::ofstream file(path, std::ios::binary);
+            if (!file) {
+                throw std::runtime_error("Failed to create file: " + path.string());
+            }
+            file.write(reinterpret_cast<const char*>(bytes.data()), bytes.size());
+        }
 };
 
 #endif // ANIMATION_H

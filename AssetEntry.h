@@ -80,7 +80,7 @@ public:
 private:
     std::shared_ptr<Animation> animation_;
     std::shared_ptr<Binary> binary_;
-    std::shared_ptr<DemoButton> DemoButton_;
+    std::shared_ptr<DemoButtonFile> DemoButton_;
     std::shared_ptr<Dialog> dialogue_;
     std::shared_ptr<GruntyQuestion> gruntyquestion_;
     std::shared_ptr<LevelSetup> levelsetup_;
@@ -88,10 +88,6 @@ private:
     std::shared_ptr<Model> model_;
     std::shared_ptr<QuizQuestion> quizquestion_;
     std::shared_ptr<Sprite> sprite_;
-    std::shared_ptr<Texture> texture_;
-
-    
-
 };
 
 #endif // ASSET_ENTRY_H

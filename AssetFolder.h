@@ -8,7 +8,7 @@
 #include "AssetFactory.h"
 #include <optional>
 
-#include "DecompressionUtils.h"
+#include "librarezip.h"
 
 #include <vector>
 #include <filesystem>
@@ -50,7 +50,7 @@ public:
          * @return The asset slot count as a size_t value.
          */
         size_t asset_slot_count = (in_bytes[0] << 24) | (in_bytes[1] << 16) | (in_bytes[2] << 8) | in_bytes[3];
-
+        std::cout << "Asset slot count: " << asset_slot_count << std::endl;
         // Ensure the input is large enough
         if (in_bytes.size() < 8 + (8 * asset_slot_count)) {
             throw std::runtime_error("Invalid input: Data too small.");
@@ -66,6 +66,11 @@ public:
             std::vector<uint8_t> chunk(table_bytes.begin() + i * 8, table_bytes.begin() + (i + 1) * 8);
             meta_info.push_back(AssetMeta::from_bytes(chunk));
         }
+        // Print metadata for debugging
+/*         for (size_t i = 0; i < meta_info.size(); ++i) {
+            const AssetMeta& meta = meta_info[i];
+            std::cout << "Asset " << i << ": offset: 0x" << std::setw(8) << std::setfill('0') << std::hex << (0x010CD0 + meta.offset) << ", c_flag: " << meta.c_flag << ", t_flag: " << std::dec << meta.t_flag << std::endl;
+        } */
 
         std::vector<AssetEntry> asset_list;
         size_t segment = 0;
@@ -75,6 +80,8 @@ public:
             const AssetMeta& this_meta = meta_info[i];
             const AssetMeta& next_meta = meta_info[i + 1];
 
+            //std::cout << "Pre-testing meta offset: 0x" << std::setw(8) << std::setfill('0') << std::hex << (0x010CD0 + this_meta.offset) << std::endl;
+            //std::cout << "meta offset without rom offset: 0x" << std::setw(8) << std::setfill('0') << std::hex << this_meta.offset << std::endl;
             if (this_meta.t_flag == 4) { // Empty entry
                 asset_list.emplace_back(i, 0, this_meta, std::nullopt);
                 continue;
@@ -90,9 +97,39 @@ public:
 
             // Extract compressed binary
             std::vector<uint8_t> comp_bin(data_bytes.begin() + this_meta.offset, data_bytes.begin() + next_meta.offset);
+            std::vector<uint8_t> decomp_bin;
 
             // Decompress if needed
-            std::vector<uint8_t> decomp_bin = this_meta.c_flag ? unzip_bk(comp_bin) : comp_bin;
+            if (this_meta.offset == 0x726b0 || this_meta.offset == 0x260530 || this_meta.offset == 0x6f4418) {
+                std::cout << "Skipping unzipping for offset: 0x" << std::setw(8) << std::setfill('0') << std::hex << (0x010CD0 + this_meta.offset) << std::endl;
+                size_t expected_len = ((uint32_t)comp_bin[2] << 24) | ((uint32_t)comp_bin[3] << 16) | ((uint32_t)comp_bin[4] << 8) | ((uint32_t)comp_bin[5]);
+                std::cout << std::dec << "expected length: " << expected_len << std::endl;
+                std::cout << "Asset " << i << ": offset: 0x" << std::setw(8) << std::setfill('0') << std::hex << (0x010CD0 + this_meta.offset) << ", c_flag: " << this_meta.c_flag << ", t_flag: " << std::dec << this_meta.t_flag << std::endl;
+                decomp_bin = comp_bin;
+            } else {
+                //std::cout << "Attempting Unzipping asset at offset: 0x" << std::setw(8) << std::setfill('0') << std::hex << (0x010CD0 + this_meta.offset) << std::endl;
+                try {
+                    if (this_meta.c_flag == 1) {
+                        //std::cout << "unzipping asset at offset: 0x" << std::setw(8) << std::setfill('0') << std::hex << (0x010CD0 + this_meta.offset) << std::endl;
+                        size_t expected_len = ((uint32_t)comp_bin[2] << 24) | ((uint32_t)comp_bin[3] << 16) | ((uint32_t)comp_bin[4] << 8) | ((uint32_t)comp_bin[5]);
+                        //std::cout << std::dec << "expected length: " << expected_len << std::endl;
+
+                        decomp_bin.resize(expected_len);
+                        try{
+                            bk_unzip(comp_bin.data(), comp_bin.size(), decomp_bin.data(), expected_len);
+                        } catch (const std::exception& e) {
+                            //std::cout << "tried to unzip " << std::hex << this_meta.offset << std::dec << " but failed." << std::endl;
+                            std::cerr << "Error: " << e.what() << std::endl;
+                        }
+                    } else {
+                        //std::cout << "not unzipping " << std::hex << this_meta.offset << std::dec << std::endl;
+                        decomp_bin = comp_bin;
+                    }
+                } catch (const std::exception& e) {
+                    //std::cout << "tried to process asset " << std::hex << this_meta.offset << std::dec << " but failed." << std::endl;
+                    std::cerr << "Error: " << e.what() << std::endl;
+                }
+            }
 
             // Create asset using factory
             std::unique_ptr<Asset> asset = AssetFactory::from_seg_index_and_bytes(segment, i, decomp_bin);
@@ -184,16 +221,16 @@ public:
             std::string data_type_str;
             switch (data->get_type()) {
                 case AssetType::Animation: data_type_str = "BK64::ANIMATION"; break;
-                case AssetType::Binary: data_type_str = "BINARY"; break;
-                case AssetType::DemoInput: data_type_str = "BK64:DEMOINPUT"; break;
-                case AssetType::Dialog: data_type_str = "BK64:DIALOG"; break;
-                case AssetType::GruntyQuestion: data_type_str = "BK64:GRUNTYQUIZ"; break;
-                case AssetType::Midi: data_type_str = "BK64:MIDI"; break;
-                case AssetType::Model: data_type_str = "BK64:MODEL"; break;
-                case AssetType::LevelSetup: data_type_str = "BK64:LEVELSETUP"; break;
-                case AssetType::QuizQuestion: data_type_str = "BK64:QUESTION"; break;
-                case AssetType::Sprite: data_type_str = "BK64:SPRITE"; break;
-                default: data_type_str = "BINARY"; break;
+                case AssetType::Binary: data_type_str = "BK64::BINARY"; break;
+                case AssetType::DemoInput: data_type_str = "BK64::DEMOINPUT"; break;
+                case AssetType::Dialog: data_type_str = "BK64::DIALOG"; break;
+                case AssetType::GruntyQuestion: data_type_str = "BK64::GRUNTYQUIZ"; break;
+                case AssetType::Midi: data_type_str = "BK64::MIDI"; break;
+                case AssetType::Model: data_type_str = "BK64::MODEL"; break;
+                case AssetType::LevelSetup: data_type_str = "BK64::LEVELSETUP"; break;
+                case AssetType::QuizQuestion: data_type_str = "BK64::QUESTION"; break;
+                case AssetType::Sprite: data_type_str = "BK64::SPRITE"; break;
+                default: data_type_str = "BK64::BINARY"; break;
             }
 
             // Determine file extension
@@ -263,25 +300,31 @@ public:
             std::string relative_path = fs::relative(elem_path, out_dir_path).string();           */  
 
             std::stringstream ss;
-            ss << std::hex << elem.uid;
+            ss << std::setw(4) << std::setfill('0') << std::hex << elem.uid;
             fs::path elem_path = elem_folder / (ss.str() + file_ext);
             std::string relative_path = fs::relative(elem_path, out_dir_path).string();
             
             int assetLength;
             assetLength = (elem.uid < v_asset_entries.size() - 1) ? v_asset_entries[elem.uid + 1].meta.offset - elem.meta.offset : 0;
             
+            // temporary limtiting of asset types
+            std::string data_type_strv2;
+            if (data_type_str != "BK64::SPRITE") {
+                data_type_strv2 = "BK64::BINARY";
+            } else {
+                data_type_strv2 = "BK64::SPRITE";
+            }
             // Write asset information to the YAML file
             //name
-            asset_yaml << containing_folder << "_" << std::setw(4) << std::setfill('0') << std::hex << elem.uid << ": \n";
+            asset_yaml << elem.uid << ": \n";
             //needed yaml entries
-            //asset_yaml << " {Type: " << data_type_str << ", Offset: 0x" << std::setw(8) << std::setfill('0') << std::hex << elem.meta.offset
-            asset_yaml << " {type: " << "BK64:BINARY" << ", offset: 0x" << std::setw(8) << std::setfill('0') << std::hex << (0x5E90 + elem.meta.offset)    \
-                       << ", symbol: " << std::setw(4) << std::setfill('0') << std::hex << elem.uid << ", compressed: " << elem.meta.c_flag <<  \
-                       ", length: " << std::dec << assetLength << ", t_flag: " << elem.meta.t_flag << ", subtype: " << data_type_str << \
-                       ", size: " <<"}\n"; 
-                       // << ", assetenum: "<< "ASSET_" << elem.uid << "_" << "}\n"; 
+            asset_yaml << " {OGname: " << containing_folder << "_" << std::setw(4) << std::setfill('0') << std::hex << elem.uid << ", type: " << std::dec << data_type_strv2 << ", offset: 0x" << std::setw(8) << std::setfill('0') << std::hex << (0x010CD0 + elem.meta.offset)    \
+                       << ", symbol: " << std::setw(4) << std::setfill('0') << std::hex << elem.uid <<   \
+                       ", size: " << std::dec << assetLength << ", subtype: " << data_type_str << ", compressed: " << elem.meta.c_flag << \
+                       ", t_flag: " << elem.meta.t_flag << ", index: " << std::dec << elem.uid <<  "}\n";
             
             // Write the asset data to a file
+            //std::cout << "Writing asset to: " << elem_path << std::endl;
             data->write(elem_path);
         }
 
