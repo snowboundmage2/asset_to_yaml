@@ -28,18 +28,12 @@ add_executable(${PROJECT_NAME}
     AssetMeta.h
     AssetType.h
     BKString.h
-    #code_660.c
-    # DecompressionUtils.cpp
-    #DecompressionUtils.h
     ContInput.h
     ImgFmt.h
-    #inflate.c
-    #rarezip.h
     SpriteChunk.h
     SpriteFrame.h
     StringToVecu8.h
     Vecu8ToString.h
-    #librarezip.h
     BKAssetRareZip.h
     BKAssetRareZip.cpp
 )
@@ -55,17 +49,8 @@ include_directories(
 add_subdirectory(tools/yamlcpp)
 add_subdirectory(tools/zlib)
 
-# Find the rarezip library
-# find_library(RAREZIP_LIB NAMES rarezip PATHS ${PROJECT_SOURCE_DIR})
-# if (RAREZIP_LIB)
-#     message(STATUS "Found rarezip library: ${RAREZIP_LIB}")
-# else()
-#     message(FATAL_ERROR "Could not find rarezip library")
-# endif()
-
 # Link libraries
 target_link_libraries(${PROJECT_NAME} 
     yaml-cpp
-    #${RAREZIP_LIB}
     zlib
 )
