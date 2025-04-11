@@ -1,7 +1,7 @@
 # asset_to_yaml
 
 ## Overview
-`asset_to_yaml` is a project primarily written in C++ designed to convert banjo kazooie assets into torch compatible YAML format. This repository includes necessary files and scripts to facilitate this conversion.
+`asset_to_yaml` is a project primarily written in C++ designed to convert banjo kazooie assets, with meta info into YAML format. This repository includes necessary files and scripts to facilitate this conversion.
 
 ## Features
 - High performance asset processing
@@ -30,11 +30,11 @@
 ## Usage
 To use the tool, run the following command:
 ```bash
-./asset_to_yaml -e <asset.bin> <output_yaml>
+./asset_to_yaml -e <asset.bin> <output_folder>
 ```
 
 ## Contributing
 Contributions are welcome! Please fork the repository and submit your pull requests.
 
 ## Contact
-For any questions or issues, please open an issue on this repository, or at me on the you know where.
+For any questions or issues, please open an issue on this repository, or @ me on the you know where.
