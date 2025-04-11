@@ -8,7 +8,8 @@
 #include "AssetFactory.h"
 #include <optional>
 
-#include "librarezip.h"
+//#include "librarezip.h"
+#include "BKAssetRareZip.h"
 
 #include <vector>
 #include <filesystem>
@@ -39,16 +40,6 @@ public:
         }
 
         // Read asset slot count (first 4 bytes)
-        /**
-         * @brief Extracts the asset slot count from the first four bytes of the input byte array.
-         * 
-         * This line of code combines the first four bytes of the input byte array (in_bytes)
-         * into a single size_t value representing the asset slot count. The bytes are shifted
-         * and combined using bitwise OR operations to form the final value.
-         * 
-         * @param in_bytes The input byte array containing the asset slot count in the first four bytes.
-         * @return The asset slot count as a size_t value.
-         */
         size_t asset_slot_count = (in_bytes[0] << 24) | (in_bytes[1] << 16) | (in_bytes[2] << 8) | in_bytes[3];
         std::cout << "Asset slot count: " << asset_slot_count << std::endl;
         // Ensure the input is large enough
@@ -100,35 +91,35 @@ public:
             std::vector<uint8_t> decomp_bin;
 
             // Decompress if needed
-            if (this_meta.offset == 0x726b0 || this_meta.offset == 0x260530 || this_meta.offset == 0x6f4418) {
-                std::cout << "Skipping unzipping for offset: 0x" << std::setw(8) << std::setfill('0') << std::hex << (0x010CD0 + this_meta.offset) << std::endl;
-                size_t expected_len = ((uint32_t)comp_bin[2] << 24) | ((uint32_t)comp_bin[3] << 16) | ((uint32_t)comp_bin[4] << 8) | ((uint32_t)comp_bin[5]);
-                std::cout << std::dec << "expected length: " << expected_len << std::endl;
-                std::cout << "Asset " << i << ": offset: 0x" << std::setw(8) << std::setfill('0') << std::hex << (0x010CD0 + this_meta.offset) << ", c_flag: " << this_meta.c_flag << ", t_flag: " << std::dec << this_meta.t_flag << std::endl;
-                decomp_bin = comp_bin;
-            } else {
-                //std::cout << "Attempting Unzipping asset at offset: 0x" << std::setw(8) << std::setfill('0') << std::hex << (0x010CD0 + this_meta.offset) << std::endl;
-                try {
-                    if (this_meta.c_flag == 1) {
-                        //std::cout << "unzipping asset at offset: 0x" << std::setw(8) << std::setfill('0') << std::hex << (0x010CD0 + this_meta.offset) << std::endl;
-                        size_t expected_len = ((uint32_t)comp_bin[2] << 24) | ((uint32_t)comp_bin[3] << 16) | ((uint32_t)comp_bin[4] << 8) | ((uint32_t)comp_bin[5]);
-                        //std::cout << std::dec << "expected length: " << expected_len << std::endl;
-
-                        decomp_bin.resize(expected_len);
-                        try{
-                            bk_unzip(comp_bin.data(), comp_bin.size(), decomp_bin.data(), expected_len);
-                        } catch (const std::exception& e) {
-                            //std::cout << "tried to unzip " << std::hex << this_meta.offset << std::dec << " but failed." << std::endl;
-                            std::cerr << "Error: " << e.what() << std::endl;
+            //if (this_meta.offset == 0x726b0 ||  this_meta.offset == 0x260530 || this_meta.offset == 0x6f4418) {
+            std::cout << "Decompressing asset at offset: 0x" << std::setw(8) << std::setfill('0') << std::hex << (0x010CD0 + this_meta.offset) << std::endl;
+            try {
+                if (this_meta.c_flag == 1) {
+                    //std::cout << "unzipping asset at offset: 0x" << std::setw(8) << std::setfill('0') << std::hex << (0x010CD0 + this_meta.offset) << std::endl;
+                    size_t expected_len = ((uint32_t)comp_bin[2] << 24) | ((uint32_t)comp_bin[3] << 16) | ((uint32_t)comp_bin[4] << 8) | ((uint32_t)comp_bin[5]);
+                    //std::cout << std::dec << "expected length: " << expected_len << std::endl;
+                    decomp_bin.resize(expected_len);
+                    //std::cout << std::dec << "trying the unzip now" << std::endl;
+                    try{
+                        decomp_bin = BK64::bk_unzip(comp_bin.data(), comp_bin.size());
+                    } catch (const std::exception& e) {
+                        std::cout << "tried to unzip " << std::hex << this_meta.offset << std::dec << " but failed." << std::endl;
+                        std::cerr << "Error: " << e.what() << std::endl;
+                        //print the first 8 bytes of the compressed data
+                        std::cout << "compressed data inital bytes: ";
+                        for (size_t j = 0; j < 8 && j < comp_bin.size(); ++j) {
+                            std::cout << std::hex << (int)comp_bin[j] << " ";
                         }
-                    } else {
-                        //std::cout << "not unzipping " << std::hex << this_meta.offset << std::dec << std::endl;
+                        std::cout << std::dec << "expected length: " << expected_len << std::endl;
                         decomp_bin = comp_bin;
                     }
-                } catch (const std::exception& e) {
-                    //std::cout << "tried to process asset " << std::hex << this_meta.offset << std::dec << " but failed." << std::endl;
-                    std::cerr << "Error: " << e.what() << std::endl;
+                } else {
+                    //std::cout << "not unzipping " << std::hex << this_meta.offset << std::dec << std::endl;
+                    decomp_bin = comp_bin;
                 }
+            } catch (const std::exception& e) {
+                //std::cout << "tried to process asset " << std::hex << this_meta.offset << std::dec << " but failed." << std::endl;
+                std::cerr << "Error: " << e.what() << std::endl;
             }
 
             // Create asset using factory
