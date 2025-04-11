@@ -1,7 +1,0 @@
-[ 80%] Built target yaml-cpp
-[ 82%] Building CXX object CMakeFiles/AssetToYamlCPP.dir/main.cpp.o
-[ 85%] Linking CXX executable AssetToYamlCPP
-[ 85%] Built target AssetToYamlCPP
-[ 90%] Built target yaml-cpp-sandbox
-[ 95%] Built target yaml-cpp-parse
-[100%] Built target yaml-cpp-read
