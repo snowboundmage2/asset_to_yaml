@@ -7,6 +7,4 @@
 [submodule "tools/zlib"]
 	path = tools/zlib
 	url = https://github.com/madler/zlib.git
-[submodule "tools/rarezip"]
-	path = tools/rarezip
-	url = https://github.com/MittenzHugg/rarezip.git
+	
